@@ -100,6 +100,7 @@ Gokul tunes `α, β, m, λ` and Clemen tunes `k`, both on val (§6). The values 
 CS4248_Project/
 ├── README.md                         Damian    (done: architecture + training pipeline; §6 setup/reproduction filled at M4)
 ├── docs/TEAM_TASKS.md                Damian    (this file; changes via PR)
+├── docs/tasks/<name>.md              each member (per-person brief for your AI agent: WPs, dependencies, blocker protocol; derived from this file)
 ├── requirements.txt                  Xin Hui   (others: request additions in your PR description)
 ├── .gitignore                        Damian    (done: data/, outputs/, checkpoints/, wandb/, model weights, .env, LaTeX build files, videos)
 ├── data/
