@@ -199,7 +199,7 @@ C1, C2 and C6 moved to Xin Hui (now X8, X9, X10). Most of Clemen's work falls in
 ### Damian Liew: Training engine, DeBERTa span model, tuning, efficiency
 | # | Work package | Done when |
 |---|---|---|
-| D0 ⏱ | Repo admin: ~~make the repo private~~ (done), ~~README.md and .gitignore~~ (done), add 4 collaborators, branch protection | All 5 can push branches; `main` protected. |
+| D0 ⏱ | Repo admin: ~~make the repo private~~ (done), ~~README.md and .gitignore~~ (done), ~~add 4 collaborators~~ (done), branch protection | All 5 can push branches; `main` protected. |
 | D1 ⏱ | `train.py` + `configs/base.yaml`: YAML config, seeding, bf16/fp16, gradient accumulation, eval on val each epoch, best-checkpoint selection on val F1, writes C7 run JSON, optional W&B logging. Supports a pluggable model class (span-only or Gokul's evidence model), extra feature columns, and passes model-specific config keys (e.g. `neg_mode`) through unchanged | Smoke test with the tiny model passes on CPU in under 2 min. Gokul can plug in the evidence model **without editing `train.py`** (model registry or config key). |
 | D2 ⏱ | `span_model.py` (BERT/DeBERTa span head) + `span_decoder.py` (n-best over windows, max answer length, maps back to text through offsets) + `predict.py` (C6 output; also saves raw logits so decoders can be swept without re-running the model) | Standard decoder reproduces HF reference post-processing on a tiny sample. `predict.py` can run any checkpoint on any split. |
 | D3 | DeBERTa-v3-base span-only **hyper-parameter search on val**: LR ∈ {1e-5, 2e-5, 3e-5}, epochs ∈ {2, 3}, warm-up ∈ {6%, 10%}, seed 42 | Chosen setting committed to `configs/deberta_span/best.yaml`, and frozen for all DeBERTa variants. |
@@ -368,7 +368,8 @@ One rehearsal with the full team before recording.
 - [ ] Everyone reads this file and comments on the PR (approve or request changes)
 - [ ] Confirm the deadline from Canvas and shift §7 dates
 - [x] Damian: repo private, README.md, .gitignore
-- [ ] Damian: collaborators, branch protection (D0)
+- [x] Damian: all 4 collaborators added
+- [ ] Damian: branch protection on `main` (D0)
 - [ ] Xin Hui: skeleton PR (X1: folders, requirements.txt, pytest)
 - [ ] Each member: GPU access confirmed (cluster / Colab Pro / own GPU) and posted in chat
 - [ ] Agree on contracts C1–C8 (15-min discussion at the kickoff meeting)
