@@ -8,6 +8,11 @@
 > 1. **Lexical overlap dropped.** The lexical-overlap QA baseline is gone. Our main hard negatives are now **model-mined**: the model picks them during training. Lexical (BM25) negatives stay only as an ablation.
 > 2. **Sentence ranking.** The evidence head is now a passage-level sentence ranker, evaluated with Recall@k and MRR.
 > 3. **Sequential computation.** A rank-then-read (top-k) decoder is compared against joint decoding.
+>
+> **v3 changes (Xin Hui ↔ Clemen swap):** Xin Hui is busy in the final weeks, so she takes Clemen's early work and Clemen takes her late work. Moved work packages were renumbered to match the new owner:
+> - **To Xin Hui:** C1 → **X8** (data split), C2 → **X9** (features), C6 → **X10** (literature survey). She also writes §2 and §4.1 and presents video segment 2.
+> - **To Clemen:** X4 → **C8** (error analysis), X6 → **C9** (reproducibility). Clemen also writes §5.1 and §6 and presents video segment 5.
+> - X3 (significance script) is now built early, by M2.
 
 ---
 
@@ -15,11 +20,11 @@
 
 | Member | Owns (one line) | Main code they own | Paper sections | Video segment |
 |---|---|---|---|---|
-| **Clemen** | Data + features pipeline, BERT baseline, sequential (rank-then-read) decoder, related-work survey, slides lead | `src/qa/data/squad_io.py`, `src/qa/data/features.py`, `src/qa/decoding/sequential_decoder.py` | §2 Related Work, §3.4 Sequential decoding, §4.1 Data, §5.3 Joint vs. sequential | Task, data, baselines, prior work, rank-then-read |
+| **Clemen** | BERT baseline, sequential (rank-then-read) decoder, error analysis, reproducibility package, slides/video lead | `src/qa/decoding/sequential_decoder.py`, `src/qa/eval/error_analysis.py`, `scripts/run_all.sh`, `configs/final_checkpoints.yaml` | §3.4 Sequential decoding, §5.1 Main results, §5.3 Joint vs. sequential, §6 Error analysis | Results, joint vs. sequential, errors, robustness, conclusion |
 | **Damian** | Training/inference engine, DeBERTa span-only model, hyper-parameter tuning, efficiency | `src/qa/train.py`, `src/qa/predict.py`, `src/qa/models/span_model.py`, `src/qa/decoding/span_decoder.py`, `README.md`, `.gitignore` | §1 Intro, §3.1 Base model, §4.2 Training setup | Motivation + system overview |
 | **Jun Yip** | Evidence labels, negative candidates (lexical/random), BM25 ranker baseline, sentence features, ranking metrics, adversarial robustness | `src/qa/data/evidence_labels.py`, `src/qa/data/sentence_features.py`, `src/qa/baselines/bm25_ranker.py`, `src/qa/eval/evidence_metrics.py`, `src/qa/eval/adversarial.py` | §3.2 Evidence labels & negatives, §5.4 Robustness | Evidence labels, negatives, ranking quality |
 | **Gokul** | Sentence-ranker head, joint loss with model-mined negatives, passage-level ranking, joint decoding, ablations | `src/qa/models/evidence_model.py`, `src/qa/decoding/sentence_ranking.py`, `src/qa/decoding/evidence_decoder.py`, `configs/ablations/` | §3.3 Ranker, joint objective & decoding, §5.2 Ablations & ranking quality | Model + ablations |
-| **Xin Hui** | Evaluation harness, significance tests, error analysis (incl. evidence-conditioned accuracy), reproducibility, paper integration | `src/qa/eval/run_eval.py`, `src/qa/eval/significance.py`, `src/qa/eval/error_analysis.py`, `scripts/`, `paper/main.tex` | §5.1 Main results, §6 Error analysis, §7 Conclusion & Limitations | Results, errors, robustness, conclusion |
+| **Xin Hui** | Data + features pipeline, evaluation harness, significance tests, related-work survey, paper integration (front-loaded: most of her work is due by M2) | `src/qa/data/squad_io.py`, `src/qa/data/features.py`, `src/qa/eval/run_eval.py`, `src/qa/eval/significance.py`, `scripts/download_data.sh`, `scripts/make_tables.py`, `paper/main.tex` | §2 Related Work, §4.1 Data, §7 Conclusion & Limitations | Task data, splits, baselines, prior work |
 
 Everyone: trains 3–6 GPU runs from the run matrix (§6), writes their own sections, reviews 1 PR per day of a teammate, and presents about 3 minutes.
 
@@ -36,7 +41,7 @@ The rubric: **Content 60%**, **Presentation 30%**, **Novelty 10%**. Every task i
 | Content: valid & technically sound | Is the setup fair and leak-free? | Validation split held out **by article**, not by question. `dev-v1.1.json` touched **only** for final, pre-chosen checkpoints. All DeBERTa variants share the same preprocessing, hyper-parameters and seeds. Official `evaluate-v2.0.py`, unmodified. | Clemen, Damian, Xin Hui |
 | Content: quantity of work | Is there enough work? | 2 QA baselines + full model + 5 ablation variants × 3 seeds. 2 sequential pipelines. Sentence-ranking metrics against 2 reference rankers. Adversarial robustness. Significance tests. Error analysis with a manual audit. Efficiency table. | All |
 | Content: performance | How good is the system? | BERT-base reproduced within about 1 point of the published 80.8 EM / 88.5 F1. DeBERTa-v3-base span-only should be at least about 92 F1 (check public reports and cite what we compare to). The full model should beat span-only on mean ± std, and the paper should report a significance test either way. Our ranker should beat BM25 on Recall@1. | Damian, Gokul, Jun Yip |
-| Content: literature cited & compared | Do we place results in context? | Table comparing published SQuAD v1.1 dev numbers (logistic regression baseline, BiDAF, BERT, SpanBERT, RoBERTa/XLNet, DeBERTa) against ours. Prior work on sentence selection and rank-then-read pipelines, supporting-fact supervision and hard-negative mining is cited, so our novelty claim is honest. | Clemen |
+| Content: literature cited & compared | Do we place results in context? | Table comparing published SQuAD v1.1 dev numbers (logistic regression baseline, BiDAF, BERT, SpanBERT, RoBERTa/XLNet, DeBERTa) against ours. Prior work on sentence selection and rank-then-read pipelines, supporting-fact supervision and hard-negative mining is cited, so our novelty claim is honest. | Xin Hui |
 | Presentation: report | Is the paper clear and correct? | ACL template, Times 11pt, at most 4 pages of content plus 1 page of references, checked mechanically. One clear method figure, consistent plots, a **contribution statement** (ours vs. external code), and a limitations paragraph. | Xin Hui (integration), all (sections) |
 | Presentation: oral | Clear 15-min video, everyone speaks | 5 × about 3 min, one slide template, a rehearsal before recording, timed to 14:30 or less. | Clemen (slides/video lead), all |
 | Novelty | Anything unique? | (a) a **sentence-evidence ranker trained jointly with the reader, using model-mined hard negatives** (compared against lexical and random negatives), (b) **joint vs. sequential (rank-then-read) decoding** on the same model, with the ranker's Recall@k ceiling, (c) a test of whether this improves **robustness to distracting sentences (AddSent)**. This links the method to measurable claims. | Gokul, Jun Yip, Clemen |
@@ -103,15 +108,15 @@ CS4248_Project/
 │   ├── deberta_span/*.yaml           Damian
 │   ├── evidence/*.yaml               Gokul
 │   ├── ablations/*.yaml              Gokul     (every member's run config lives here, written by Gokul)
-│   └── final_checkpoints.yaml        Xin Hui   (frozen at M3; the only checkpoints evaluated on test)
+│   └── final_checkpoints.yaml        Clemen    (frozen at M3; the only checkpoints evaluated on test)
 ├── scripts/
-│   ├── download_data.sh              Clemen
-│   ├── run_all.sh                    Xin Hui   (reproduce everything)
+│   ├── download_data.sh              Xin Hui
+│   ├── run_all.sh                    Clemen    (reproduce everything)
 │   └── make_tables.py / make_figs.py Xin Hui
 ├── src/qa/
 │   ├── data/
-│   │   ├── squad_io.py               Clemen    (load, article-level split, stats)
-│   │   ├── features.py               Clemen    (tokenise, sliding window, offsets, start/end labels)
+│   │   ├── squad_io.py               Xin Hui   (load, article-level split, stats)
+│   │   ├── features.py               Xin Hui   (tokenise, sliding window, offsets, start/end labels)
 │   │   ├── evidence_labels.py        Jun Yip   (sentence split, gold sentence, negative candidates, lexical/random negatives, BM25 scores)
 │   │   └── sentence_features.py      Jun Yip   (per-window sentence ids, labels, candidate masks)
 │   ├── models/
@@ -129,14 +134,14 @@ CS4248_Project/
 │       ├── evaluate-v2.0.py          Xin Hui   (OFFICIAL, UNMODIFIED, with attribution header in README)
 │       ├── run_eval.py               Xin Hui
 │       ├── significance.py           Xin Hui
-│       ├── error_analysis.py         Xin Hui
+│       ├── error_analysis.py         Clemen
 │       ├── evidence_metrics.py       Jun Yip   (Recall@k, MRR)
 │       └── adversarial.py            Jun Yip
 ├── tests/test_<module>.py            owner of the module under test
 ├── results/
 │   ├── runs/<run_id>.json            whoever ran it (one file per run, so no shared-file conflicts)
 │   ├── predictions/<run_id>.<split>.json   final test predictions only (small; needed for significance tests)
-│   ├── audits/                       Jun Yip (label/negative audit), Xin Hui (error audit); separate files
+│   ├── audits/                       Jun Yip (label/negative audit), Clemen (error audit); separate files
 │   └── tables/, figures/             generated by Xin Hui's scripts, never hand-edited
 ├── paper/
 │   ├── main.tex, acl.sty, refs.bib   Xin Hui   (bib entries: add yours in your PR, sorted by key)
@@ -149,8 +154,8 @@ These contracts let people build in parallel against mocks before upstream code 
 
 | Contract | Producer → Consumer | Format |
 |---|---|---|
-| **C1 Splits** | Clemen → all | `data/processed/{train,val}.json` in SQuAD v1.1 format plus `data/processed/split_titles.json`. Test = raw `dev-v1.1.json`. |
-| **C2 Base features** | Clemen → Damian, Gokul, Jun Yip | HF `Dataset` with `input_ids, attention_mask, (token_type_ids), offset_mapping, example_id, start_positions, end_positions`. Context tokens identifiable through `sequence_ids`. |
+| **C1 Splits** | Xin Hui → all | `data/processed/{train,val}.json` in SQuAD v1.1 format plus `data/processed/split_titles.json`. Test = raw `dev-v1.1.json`. |
+| **C2 Base features** | Xin Hui → Damian, Gokul, Jun Yip | HF `Dataset` with `input_ids, attention_mask, (token_type_ids), offset_mapping, example_id, start_positions, end_positions`. Context tokens identifiable through `sequence_ids`. |
 | **C3 Evidence annotations** | Jun Yip → Gokul, Clemen, Xin Hui | `data/processed/evidence_{split}.jsonl`, one line per question: `{"id", "sentences": [[cs, ce], ...], "gold_sent": int, "neg_candidates": [int], "lex_neg": int\|null, "rand_neg": int\|null, "bm25": [float], "straddle_merged": bool}` (char offsets into the context; `bm25` = one score per sentence against the question). |
 | **C4 Sentence features** | Jun Yip → Gokul | `add_sentence_fields(features, evidence, neg_mode) -> features` adds `sent_ids` (per token, `-1` outside context), `sent_label` (window-local index or `-100`), `neg_cand_mask [S_max]` (window-local candidate mask, used by `model` mode), `static_neg_label` (window-local index or `-100`; only for `lexical`/`random`). |
 | **C5 Model output** | Damian/Gokul → decoders | `start_logits [B,T]`, `end_logits [B,T]`, optional `sent_logits [B,S_max]` with `sent_mask`. |
@@ -166,7 +171,7 @@ Use a tiny model (e.g. `hf-internal-testing/tiny-random-bert`) and about 200 exa
 1. `main` is protected: PRs only, at least 1 approving review, squash-merge. Damian (repo owner) sets this up.
 2. Branch names: `<name>/<topic>`, e.g. `junyip/negative-candidates`. Keep PRs small (under about 400 lines) and merge often.
 3. PR checklist: tests pass (`pytest -q`), no data or checkpoints committed, config committed for any run you report, and the run JSON is in `results/runs/`.
-4. Reviewer pairs (rotate weekly): Clemen ↔ Damian, Jun Yip ↔ Gokul, Xin Hui reviews eval-touching PRs. The reviewer must run the code, not just read it.
+4. Reviewer pairs (rotate weekly): Xin Hui ↔ Damian (data/features ↔ training engine), Jun Yip ↔ Gokul, Clemen reviews eval- and analysis-touching PRs (Xin Hui does so until M2). The reviewer must run the code, not just read it.
 5. **Never commit:** SQuAD JSON, model checkpoints, `outputs/`, W&B dirs, `.env` or tokens. Large artefacts go to a shared Google Drive or HF Hub (private), linked in the README.
 6. Every reported number must be traceable: `run_id → config → git_sha`.
 
@@ -176,16 +181,17 @@ Use a tiny model (e.g. `hf-internal-testing/tiny-random-bert`) and about 200 exa
 
 Each WP lists **deliverable → done when**. Items marked ⏱ are on the critical path; finish them first.
 
-### Clemen Ong: Data, BERT baseline, sequential decoding, related work, slides lead
+### Clemen Ong: BERT baseline, sequential decoding, error analysis, reproducibility, video lead
+C1, C2 and C6 moved to Xin Hui (now X8, X9, X10). Most of Clemen's work falls in M3–M6.
+
 | # | Work package | Done when |
 |---|---|---|
-| C1 ⏱ | `squad_io.py`: load SQuAD, article-level train/val split (seed 2026), dataset statistics (articles, contexts, questions, context-length distribution, answer length, question-type distribution) | Split files exist and are reproducible. Stats table drafted for §4.1. Test shows no title is in both train and val. |
-| C2 ⏱ | `features.py`: tokenisation with sliding windows and offset mapping; start/end labels; out-of-window answers → CLS | Test: decoding gold labels back through offsets recovers the gold answer text for ≥ 99.5% of train questions (report the remainder and why). Works for BERT and DeBERTa tokenisers. |
 | C3 | `sequential_decoder.py` (rank-then-read): reads C8 (any ranker) + logits, restricts spans to the top-`k` sentences, sweeps `k ∈ {1, 2, 3, all}` on val. Runs **R9a** (BM25 top-k → R3 span-only reader; the classic pipeline) and **R9b** (our ranker top-k → R4). Reports the **Recall@k ceiling** and splits the remaining errors into ranker errors (gold sentence not in top-k) and reader errors (gold sentence kept, wrong span) | Test: `k = all` reproduces the joint decoder's output exactly. `k` frozen on val before test. Joint-vs-sequential table and ceiling figure drafted for §5.3. |
 | C4 | BERT-base baseline: config plus 3 seeds (runs R2) | 3 run JSONs. Mean within about 1 point of 80.8 / 88.5. If not, find out why before M3. |
 | C5 | Lexical-negative ablation, 3 seeds (runs R6b; config written by Gokul) | 3 run JSONs. |
-| C6 | Literature survey and comparison table: published SQuAD v1.1 dev EM/F1 for LR baseline (Rajpurkar 2016), BiDAF (Seo 2017), BERT-base/large (Devlin 2019), SpanBERT (Joshi 2020), XLNet / RoBERTa (Yang 2019; Liu 2019), DeBERTa / DeBERTaV3 (He 2021; He 2023). Evidence-related prior work: sentence selection and rank-then-read (Min et al. 2018), supporting-fact supervision (HotpotQA, Yang et al. 2018), hard-negative mining in retrieval (e.g. DPR, Karpukhin et al. 2020), adversarial SQuAD (Jia & Liang 2017) | `refs.bib` entries verified against ACL Anthology / arXiv. Table drafted. Novelty boundaries written down (what is prior work vs. ours). |
 | C7 | Slides template and video assembly: one deck, consistent style, stitches 5 recordings, checks total under 15:00 | Final MP4 and PDF slides ready by M6. |
+| C8 (was X4) | `error_analysis.py`: automatic, mutually exclusive categories, applied in this order: **(1) wrong sentence** (prediction not in the gold sentence; uses contract C3), **(2) boundary** (overlaps gold, EM = 0), **(3) numeric/date** (gold is a number or date by spaCy NER or regex), **(4) entity** (gold is a named entity, prediction is a different span), **(5) other**. Slices: question type (wh-word), context length (single vs. multi-window), answer length. **Evidence-conditioned accuracy:** P(answer correct \| top-1 sentence correct) vs. P(answer correct \| top-1 wrong), for span-only (span-implied ranking) and the full model (contract C8). **Manual audit** of 100 errors of the full model and 100 of span-only. Start the script on seed-42 outputs at M2, so only the final re-run and the audit fall in M4 | Error table and one figure for §6. Examples box with 2–3 illustrative cases. "Wrong sentence" errors compared between span-only and the full model, which directly tests the method. This links to C3: wrong-sentence errors are the joint-decoding counterpart of ranker errors. |
+| C9 (was X6) | Reproducibility package: `scripts/run_all.sh` (one command per results table; Damian copies these into README §6), `configs/final_checkpoints.yaml`, the attribution list of external code, and the final submission zip (code + external code + data instructions). **Reproduction check:** a teammate who did not write the code reproduces one table from the README alone | Check passed at M4. Submission zip built and tested at M6. |
 
 ### Damian Liew: Training engine, DeBERTa span model, tuning, efficiency
 | # | Work package | Done when |
@@ -197,7 +203,7 @@ Each WP lists **deliverable → done when**. Items marked ⏱ are on the critica
 | D4 | DeBERTa span-only, 3 seeds (runs R3) | 3 run JSONs, mean ± std on val and test. |
 | D5 | Efficiency table: parameters, training GPU-hours, inference throughput (questions/s, batch 64, same GPU) for BERT, DeBERTa span-only, full model (joint and sequential decoding) | Table in `results/tables/efficiency.csv`. The ranker head's overhead and the decoding cost are quantified. |
 | D6 (stretch) | DeBERTa-v3-large span-only and full model, 1 seed each, if compute allows. Or help Clemen build the re-encode-top-k sequential reader | Reported as "scaling check", not in main claims. |
-| D7 | Keep `README.md` current: fill §6 *Setup and reproduction* (environment, data download, one command per results table taken from Xin Hui's `run_all.sh`, checkpoint links) and the *TBD* results/hyper-parameter fields | Done at M4, before Xin Hui's reproduction check (X6). |
+| D7 | Keep `README.md` current: fill §6 *Setup and reproduction* (environment, data download, one command per results table taken from Clemen's `run_all.sh`, checkpoint links) and the *TBD* results/hyper-parameter fields | Done at M4, before Clemen's reproduction check (C9). |
 
 ### Jun Yip Chan: Evidence labels, negatives, ranking quality, robustness
 | # | Work package | Done when |
@@ -218,16 +224,19 @@ Each WP lists **deliverable → done when**. Items marked ⏱ are on the critica
 | G4 | Write **all** ablation configs (R4–R7, R6b) so every run uses identical settings, then run the full model with 3 seeds (R4) and compute R7 (no evidence in decoding) from R4 checkpoints | Configs merged before M3. 3 run JSONs for R4 and R7. |
 | G5 | Ablation table and analysis: full vs. −ranking objective (= R3) vs. −negatives (R5) vs. random (R6) vs. lexical (R6b) vs. −evidence in decoding (R7). Mean ± std, with Recall@1/MRR from J6 and significance stars from Xin Hui's script | Table drafted for §5.2 with a 3–4 sentence interpretation, including whether model-mined beats lexical. |
 
-### Wong Xin Hui: Evaluation, analysis, reproducibility, paper integration
+### Wong Xin Hui: Data pipeline, evaluation harness, significance, related work, paper integration
+Xin Hui is busy in the final weeks, so her work is front-loaded: almost everything is due by M2. X4 and X6 moved to Clemen (now C8, C9).
+
 | # | Work package | Done when |
 |---|---|---|
 | X1 ⏱ | Repo skeleton: folder layout (§3), `requirements.txt` with pinned versions, `pytest` setup, optional GitHub Actions running the CPU smoke tests | Fresh clone + `pip install -r requirements.txt` + `pytest` passes. |
 | X2 ⏱ | `run_eval.py`: wraps the **unmodified** official `evaluate-v2.0.py`, writes C7 JSON. `make_tables.py` aggregates `results/runs/*.json` → mean ± std tables (CSV + LaTeX) | A dummy prediction file (e.g. first-sentence answers) evaluates end to end. Script output matches the official script exactly. |
-| X3 | `significance.py`: paired bootstrap (10k resamples) and approximate randomisation on per-question EM/F1 (and per-question Recall@1 for rankers) between any two systems | Applied to every row-pair the paper compares. p-values in tables. |
-| X4 | `error_analysis.py`: automatic, mutually exclusive categories, applied in this order: **(1) wrong sentence** (prediction not in the gold sentence; uses C3), **(2) boundary** (overlaps gold, EM = 0), **(3) numeric/date** (gold is a number or date by spaCy NER or regex), **(4) entity** (gold is a named entity, prediction is a different span), **(5) other**. Slices: question type (wh-word), context length (single vs. multi-window), answer length. **Evidence-conditioned accuracy:** P(answer correct \| top-1 sentence correct) vs. P(answer correct \| top-1 wrong), for span-only (span-implied ranking) and the full model (C8). **Manual audit** of 100 errors of the full model and 100 of span-only | Error table and one figure for §6. Examples box with 2–3 illustrative cases. "Wrong sentence" errors compared between span-only and the full model, which directly tests the method. |
+| X8 ⏱ (was C1) | `squad_io.py`: load SQuAD, article-level train/val split (seed 2026), dataset statistics (articles, contexts, questions, context-length distribution, answer length, question-type distribution). Also `scripts/download_data.sh` | Split files exist and are reproducible. Stats table drafted for §4.1. Test shows no title is in both train and val. |
+| X9 ⏱ (was C2) | `features.py`: tokenisation with sliding windows and offset mapping; start/end labels; out-of-window answers → CLS | Test: decoding gold labels back through offsets recovers the gold answer text for ≥ 99.5% of train questions (report the remainder and why). Works for BERT and DeBERTa tokenisers. |
+| X10 (was C6) | Literature survey and comparison table: published SQuAD v1.1 dev EM/F1 for LR baseline (Rajpurkar 2016), BiDAF (Seo 2017), BERT-base/large (Devlin 2019), SpanBERT (Joshi 2020), XLNet / RoBERTa (Yang 2019; Liu 2019), DeBERTa / DeBERTaV3 (He 2021; He 2023). Evidence-related prior work: sentence selection and rank-then-read (Min et al. 2018), supporting-fact supervision (HotpotQA, Yang et al. 2018), hard-negative mining in retrieval (e.g. DPR, Karpukhin et al. 2020), adversarial SQuAD (Jia & Liang 2017) | `refs.bib` entries verified against ACL Anthology / arXiv. Table drafted. Novelty boundaries written down (what is prior work vs. ours). |
+| X3 | `significance.py`: paired bootstrap (10k resamples) and approximate randomisation on per-question EM/F1 (and per-question Recall@1 for rankers) between any two systems | Built and unit-tested on synthetic per-question scores **by M2**. The table owners (Gokul, Jun Yip, Clemen) run it on final outputs at M4 through `run_all.sh`. |
 | X5 | −Negatives runs (R5, 3 seeds) | 3 run JSONs. |
-| X6 | Reproducibility package: `scripts/run_all.sh` (one command per results table; Damian copies these into README §6), `configs/final_checkpoints.yaml`, the attribution list of external code, and the final submission zip (code + external code + data instructions). **Reproduction check:** a teammate who did not write the code reproduces one table from the README alone | Check passed at M4. Submission zip built and tested at M6. |
-| X7 | Paper integration: ACL template `main.tex`, section files, `refs.bib`, consistent notation and figure style, **page-limit and font check** (4 pages of content + 1 page of references, Times 11pt) | Compiles cleanly. Within limits. No overfull boxes. |
+| X7 | Paper integration: ACL template `main.tex`, section files, `refs.bib`, consistent notation and figure style, **page-limit and font check** (4 pages of content + 1 page of references, Times 11pt) | Template and section files set up by M2. Final compile and page/font check at M5: compiles cleanly, within limits, no overfull boxes. |
 
 ---
 
@@ -280,17 +289,17 @@ The proposal's timeline is not binding. **Dates below assume a submission deadli
 |---|---|---|---|
 | — | Abstract | Damian (final pass by all) | 0.15 |
 | 1 | Introduction: task, motivation, contributions list | Damian | 0.45 |
-| 2 | Related Work: QA models on SQuAD, sentence selection / rank-then-read, evidence supervision, hard-negative mining, adversarial robustness | Clemen | 0.35 |
+| 2 | Related Work: QA models on SQuAD, sentence selection / rank-then-read, evidence supervision, hard-negative mining, adversarial robustness | Xin Hui | 0.35 |
 | 3.1 | Base span extractor | Damian | 0.25 |
 | 3.2 | Evidence labels, negative candidates, lexical/random negatives (+ audit numbers) | Jun Yip | 0.3 |
 | 3.3 | Sentence ranker, model-mined negatives, joint objective & joint decoding (+ method figure) | Gokul | 0.4 |
 | 3.4 | Sequential (rank-then-read) decoding | Clemen | 0.15 |
-| 4 | Experimental setup: data/splits (Clemen), training/hyper-parameters/efficiency (Damian) | Clemen + Damian (separate subsection files) | 0.35 |
-| 5.1 | Main results vs. literature table | Xin Hui | 0.3 |
+| 4 | Experimental setup: data/splits (Xin Hui), training/hyper-parameters/efficiency (Damian) | Xin Hui + Damian (separate subsection files) | 0.35 |
+| 5.1 | Main results vs. literature table (uses Xin Hui's X10 table) | Clemen | 0.3 |
 | 5.2 | Ablations + `λ` curve + ranking quality (Recall@k, MRR) | Gokul | 0.35 |
 | 5.3 | Joint vs. sequential decoding + Recall@k ceiling | Clemen | 0.2 |
 | 5.4 | Robustness (AddSent/AddOneSent) | Jun Yip | 0.25 |
-| 6 | Error analysis | Xin Hui | 0.35 |
+| 6 | Error analysis | Clemen | 0.35 |
 | 7 | Conclusion + Limitations | Xin Hui | 0.15 |
 | — | **Contribution statement:** what the group implemented vs. external code (HF Transformers/Datasets, official eval script, spaCy, BM25 library, pretrained checkpoints). Required by the brief | Xin Hui (each member confirms their row) | short |
 
@@ -300,10 +309,10 @@ Rules: write in the same tense and notation (`EM`, `F1`, `λ`, `α`, `β`, `k`),
 | Order | Speaker | Content | Time |
 |---|---|---|---|
 | 1 | Damian | Task, motivation, system overview, contributions | 2:30 |
-| 2 | Clemen | Data and splits, BERT baseline, prior-work landscape, rank-then-read pipeline and its Recall@k ceiling | 2:45 |
+| 2 | Xin Hui | Data and splits, baselines (BERT setup, BM25 ranker), prior-work landscape. Content is fixed early, so she can record by M3 | 2:45 |
 | 3 | Jun Yip | Evidence labels, negative candidates, negative audit, ranking quality vs. BM25 | 2:45 |
 | 4 | Gokul | Ranker head, model-mined negatives, joint loss and decoding, ablations | 3:00 |
-| 5 | Xin Hui | Main results (incl. joint vs. sequential), significance, error analysis, robustness, conclusion | 3:00 |
+| 5 | Clemen | Main results, joint vs. sequential decoding and its Recall@k ceiling, significance, error analysis, robustness, conclusion | 3:00 |
 | | | Buffer | 1:00 |
 
 One rehearsal with the full team before recording.
@@ -314,13 +323,13 @@ One rehearsal with the full team before recording.
 
 | Member | Build | Experiments | Analysis | Writing + slides | Review/integration | **Total** |
 |---|---|---|---|---|---|---|
-| Clemen | 16 (C1–C3) | 6 (R2, R6b) | 6 (C6 survey) | 8 (§2, §3.4, §4.1, §5.3, slides/video lead) + 2 talk | 3 | **≈ 41** |
+| Clemen | 8 (C3, C9) | 6 (R2, R6b) | 11 (C8 error analysis) | 8 (§3.4, §5.1, §5.3, §6, slides/video lead) + 2 talk | 3 | **≈ 38** |
 | Damian | 17 (D0–D2) | 9 (D3, R3) | 2 (D5) | 6 (§1, §3.1, §4.2, README D7) + 2 talk | 4 (most integration PRs) | **≈ 40** |
 | Jun Yip | 12 (J1–J2) | 3 (R6) | 15 (J3, J5, J6) | 5 (§3.2, §5.4) + 2 talk | 3 | **≈ 40** |
 | Gokul | 18 (G1–G2) | 10 (G3, G4) | 3 (G5) | 5 (§3.3, §5.2) + 2 talk | 3 | **≈ 41** |
-| Xin Hui | 8 (X1–X2) | 3 (R5) | 15 (X3, X4) | 6 (§5.1, §6, §7, X7) + 2 talk | 4 (X6 reproducibility) | **≈ 38** |
+| Xin Hui | 20 (X1–X2, X8–X9) | 3 (R5) | 10 (X3, X10 survey) | 6 (§2, §4.1, §7, X7) + 2 talk | — (reviews until M2) | **≈ 41** |
 
-Xin Hui is lightest after README and `.gitignore` moved to Damian. If Xin Hui has slack at M2, they can take D5 (efficiency table) from Damian or J6's span-implied ranking from Jun Yip. Re-check this table at M2. If someone is more than about 5 h ahead or behind, move a WP (good candidates to move: C6 survey, J6 ranking metrics, D5 efficiency, X3 significance, D6 stretch).
+**Timing, not just totals:** Xin Hui is front-loaded on purpose (about 20 h of critical-path work due by 31 Oct). Clemen carries much of the final week (about 25 h across M4–M6: C8, C9, C7, §5.1, §6). If Clemen's final week gets too heavy, move C9 (reproducibility) to Damian, who already owns README §6 (D7). Re-check this table at M2. If someone is more than about 5 h ahead or behind, move a WP (good candidates to move: X10 survey, J6 ranking metrics, D5 efficiency, D6 stretch).
 
 ---
 
@@ -334,7 +343,7 @@ Xin Hui is lightest after README and `.gitignore` moved to Damian. If Xin Hui ha
 | Early in training, mined negatives are noise | Option: use `random` negatives for the first 10% of steps, then switch to `model`. Gokul decides on val in G3. |
 | Sequential decoding loses answers through ranker errors | Expected: report the Recall@k ceiling and the ranker-error vs. reader-error split (C3). Choose `k` on val. A loss at `k = 1` is itself a finding in favour of joint decoding. |
 | Full model gives no gain | Already planned for: ranking metrics, robustness and error analysis explain the result. Report honestly (§1). |
-| Test-set leakage or tuning on dev | Only Xin Hui's `run_all.sh` evaluates `test`, and only for checkpoints listed in `configs/final_checkpoints.yaml`, which is frozen at M3. `λ` and `k` are tuned on val only. |
+| Test-set leakage or tuning on dev | Only Clemen's `run_all.sh` evaluates `test`, and only for checkpoints listed in `configs/final_checkpoints.yaml`, which is frozen at M3. `λ` and `k` are tuned on val only. |
 | Page-limit overrun | Page budgets in §8.1. Xin Hui checks at M5. Move details to fewer, denser tables, not smaller fonts. |
 | Merge conflicts | Single-owner files, one JSON per run, one `.tex` per section, small PRs. |
 
@@ -343,7 +352,7 @@ Xin Hui is lightest after README and `.gitignore` moved to Damian. If Xin Hui ha
 ## 11. Repository & submission compliance
 
 - **Repo visibility: private (done).** Keep it private until grading is over: other students could copy a public project, and NUS plagiarism rules can hold the source group responsible too. Add the other 4 members as collaborators.
-- The brief requires us to submit **source code, all external (supporting) code and data, and instructions on how to run**. This is covered by X6. SQuAD JSON and checkpoints stay out of git, but the submission must say exactly how to obtain them, and include them in the submission bundle if the size limit allows.
+- The brief requires us to submit **source code, all external (supporting) code and data, and instructions on how to run**. This is covered by C9. SQuAD JSON and checkpoints stay out of git, but the submission must say exactly how to obtain them, and include them in the submission bundle if the size limit allows.
 - **Closed-source LLMs and APIs (ChatGPT, Gemini, …) are not allowed** in the project pipeline. All models here are open checkpoints.
 - The report must state clearly **which parts are ours vs. external**. The file-ownership table (§3) and run records make this easy to write.
 - The method changed from the proposal: the lexical baseline was dropped, and ranking plus sequential decoding were added, following TA feedback. Say this briefly in the report so graders don't see a mismatch with the proposal.
