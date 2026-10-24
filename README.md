@@ -8,7 +8,7 @@ Given a question and a Wikipedia passage, the system returns the answer as a spa
 
 The ranker is trained with **model-mined hard negatives**. At inference, its scores guide answer selection, either **jointly** or **sequentially** (rank the sentences, then read the top-k).
 
-> **Status:** design document. The architecture below is what we are implementing. Sections marked *TBD* are filled in as runs complete. Work split and milestones are in [TEAM_TASKS.md](TEAM_TASKS.md).
+> **Status:** design document. The architecture below is what we are implementing. Sections marked *TBD* are filled in as runs complete. Work split and milestones are in [TEAM_TASKS.md](docs/TEAM_TASKS.md).
 
 ---
 
@@ -159,7 +159,7 @@ Results tables: *TBD* (generated into `results/tables/` by `scripts/make_tables.
 
 ## 6. Setup and reproduction
 
-*TBD (owner: Xin Hui, see TEAM_TASKS.md X6).* This section will cover environment setup, the data download (SQuAD files are not committed), one command per results table, and links to trained checkpoints.
+*TBD (owner: Damian, see [TEAM_TASKS.md](docs/TEAM_TASKS.md) D7; commands come from Xin Hui's `scripts/run_all.sh`, X6).* This section will cover environment setup, the data download (SQuAD files are not committed), one command per results table, and links to trained checkpoints.
 
 ---
 

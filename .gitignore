@@ -1,0 +1,49 @@
+# --- Data (SQuAD / AddSent come from Canvas or HF; see README) ---
+data/
+
+# --- Training outputs and model weights (share via Drive / private HF Hub) ---
+outputs/
+checkpoints/
+runs/
+wandb/
+*.pt
+*.pth
+*.bin
+*.safetensors
+*.ckpt
+*.onnx
+
+# --- Python ---
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.ipynb_checkpoints/
+
+# --- Environments and secrets (HF / W&B tokens) ---
+.venv/
+venv/
+env/
+.env
+.env.*
+
+# --- LaTeX build artefacts (keep .tex, .bib, .sty and the final PDF) ---
+paper/**/*.aux
+paper/**/*.bbl
+paper/**/*.blg
+paper/**/*.fdb_latexmk
+paper/**/*.fls
+paper/**/*.log
+paper/**/*.out
+paper/**/*.synctex.gz
+
+# --- Video recordings (too large for git) ---
+*.mp4
+*.mov
+
+# --- Editors / OS ---
+.vscode/
+.idea/
+.DS_Store

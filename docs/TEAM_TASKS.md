@@ -16,14 +16,14 @@
 | Member | Owns (one line) | Main code they own | Paper sections | Video segment |
 |---|---|---|---|---|
 | **Clemen** | Data + features pipeline, BERT baseline, sequential (rank-then-read) decoder, related-work survey, slides lead | `src/qa/data/squad_io.py`, `src/qa/data/features.py`, `src/qa/decoding/sequential_decoder.py` | §2 Related Work, §3.4 Sequential decoding, §4.1 Data, §5.3 Joint vs. sequential | Task, data, baselines, prior work, rank-then-read |
-| **Damian** | Training/inference engine, DeBERTa span-only model, hyper-parameter tuning, efficiency | `src/qa/train.py`, `src/qa/predict.py`, `src/qa/models/span_model.py`, `src/qa/decoding/span_decoder.py` | §1 Intro, §3.1 Base model, §4.2 Training setup | Motivation + system overview |
+| **Damian** | Training/inference engine, DeBERTa span-only model, hyper-parameter tuning, efficiency | `src/qa/train.py`, `src/qa/predict.py`, `src/qa/models/span_model.py`, `src/qa/decoding/span_decoder.py`, `README.md`, `.gitignore` | §1 Intro, §3.1 Base model, §4.2 Training setup | Motivation + system overview |
 | **Jun Yip** | Evidence labels, negative candidates (lexical/random), BM25 ranker baseline, sentence features, ranking metrics, adversarial robustness | `src/qa/data/evidence_labels.py`, `src/qa/data/sentence_features.py`, `src/qa/baselines/bm25_ranker.py`, `src/qa/eval/evidence_metrics.py`, `src/qa/eval/adversarial.py` | §3.2 Evidence labels & negatives, §5.4 Robustness | Evidence labels, negatives, ranking quality |
 | **Gokul** | Sentence-ranker head, joint loss with model-mined negatives, passage-level ranking, joint decoding, ablations | `src/qa/models/evidence_model.py`, `src/qa/decoding/sentence_ranking.py`, `src/qa/decoding/evidence_decoder.py`, `configs/ablations/` | §3.3 Ranker, joint objective & decoding, §5.2 Ablations & ranking quality | Model + ablations |
-| **Xin Hui** | Evaluation harness, significance tests, error analysis (incl. evidence-conditioned accuracy), reproducibility, paper integration | `src/qa/eval/run_eval.py`, `src/qa/eval/significance.py`, `src/qa/eval/error_analysis.py`, `scripts/`, `README.md`, `paper/main.tex` | §5.1 Main results, §6 Error analysis, §7 Conclusion & Limitations | Results, errors, robustness, conclusion |
+| **Xin Hui** | Evaluation harness, significance tests, error analysis (incl. evidence-conditioned accuracy), reproducibility, paper integration | `src/qa/eval/run_eval.py`, `src/qa/eval/significance.py`, `src/qa/eval/error_analysis.py`, `scripts/`, `paper/main.tex` | §5.1 Main results, §6 Error analysis, §7 Conclusion & Limitations | Results, errors, robustness, conclusion |
 
 Everyone: trains 3–6 GPU runs from the run matrix (§6), writes their own sections, reviews 1 PR per day of a teammate, and presents about 3 minutes.
 
-Estimated effort is **about 39–41 h per person** (breakdown in §9). Each person owns separate files, so two people should never need to edit the same file (§3).
+Estimated effort is **about 38–41 h per person** (breakdown in §9). Each person owns separate files, so two people should never need to edit the same file (§3).
 
 ---
 
@@ -93,10 +93,10 @@ Gokul tunes `α, β, m, λ` and Clemen tunes `k`, both on val (§6). The values 
 
 ```
 CS4248_Project/
-├── README.md                         Xin Hui   (setup, how to reproduce every table)
-├── TEAM_TASKS.md                     Damian    (this file; changes via PR)
+├── README.md                         Damian    (done: architecture + training pipeline; §6 setup/reproduction filled at M4)
+├── docs/TEAM_TASKS.md                Damian    (this file; changes via PR)
 ├── requirements.txt                  Xin Hui   (others: request additions in your PR description)
-├── .gitignore                        Xin Hui   (data/, outputs/, checkpoints/, wandb/, *.pt, *.bin, *.safetensors)
+├── .gitignore                        Damian    (done: data/, outputs/, checkpoints/, wandb/, model weights, .env, LaTeX build files, videos)
 ├── configs/
 │   ├── base.yaml                     Damian    (schema and shared defaults)
 │   ├── baselines/*.yaml              Clemen    (BERT)
@@ -190,13 +190,14 @@ Each WP lists **deliverable → done when**. Items marked ⏱ are on the critica
 ### Damian Liew: Training engine, DeBERTa span model, tuning, efficiency
 | # | Work package | Done when |
 |---|---|---|
-| D0 ⏱ | Repo admin: add 4 collaborators, branch protection, make the repo **private** (§11) | All 5 can push branches; `main` protected. |
+| D0 ⏱ | Repo admin: ~~make the repo private~~ (done), ~~README.md and .gitignore~~ (done), add 4 collaborators, branch protection | All 5 can push branches; `main` protected. |
 | D1 ⏱ | `train.py` + `configs/base.yaml`: YAML config, seeding, bf16/fp16, gradient accumulation, eval on val each epoch, best-checkpoint selection on val F1, writes C7 run JSON, optional W&B logging. Supports a pluggable model class (span-only or Gokul's evidence model), extra feature columns, and passes model-specific config keys (e.g. `neg_mode`) through unchanged | Smoke test with the tiny model passes on CPU in under 2 min. Gokul can plug in the evidence model **without editing `train.py`** (model registry or config key). |
 | D2 ⏱ | `span_model.py` (BERT/DeBERTa span head) + `span_decoder.py` (n-best over windows, max answer length, maps back to text through offsets) + `predict.py` (C6 output; also saves raw logits so decoders can be swept without re-running the model) | Standard decoder reproduces HF reference post-processing on a tiny sample. `predict.py` can run any checkpoint on any split. |
 | D3 | DeBERTa-v3-base span-only **hyper-parameter search on val**: LR ∈ {1e-5, 2e-5, 3e-5}, epochs ∈ {2, 3}, warm-up ∈ {6%, 10%}, seed 42 | Chosen setting committed to `configs/deberta_span/best.yaml`, and frozen for all DeBERTa variants. |
 | D4 | DeBERTa span-only, 3 seeds (runs R3) | 3 run JSONs, mean ± std on val and test. |
 | D5 | Efficiency table: parameters, training GPU-hours, inference throughput (questions/s, batch 64, same GPU) for BERT, DeBERTa span-only, full model (joint and sequential decoding) | Table in `results/tables/efficiency.csv`. The ranker head's overhead and the decoding cost are quantified. |
 | D6 (stretch) | DeBERTa-v3-large span-only and full model, 1 seed each, if compute allows. Or help Clemen build the re-encode-top-k sequential reader | Reported as "scaling check", not in main claims. |
+| D7 | Keep `README.md` current: fill §6 *Setup and reproduction* (environment, data download, one command per results table taken from Xin Hui's `run_all.sh`, checkpoint links) and the *TBD* results/hyper-parameter fields | Done at M4, before Xin Hui's reproduction check (X6). |
 
 ### Jun Yip Chan: Evidence labels, negatives, ranking quality, robustness
 | # | Work package | Done when |
@@ -220,12 +221,12 @@ Each WP lists **deliverable → done when**. Items marked ⏱ are on the critica
 ### Wong Xin Hui: Evaluation, analysis, reproducibility, paper integration
 | # | Work package | Done when |
 |---|---|---|
-| X1 ⏱ | Repo skeleton: folder layout (§3), `.gitignore`, `requirements.txt` with pinned versions, `pytest` setup, optional GitHub Actions running the CPU smoke tests | Fresh clone + `pip install -r requirements.txt` + `pytest` passes. |
+| X1 ⏱ | Repo skeleton: folder layout (§3), `requirements.txt` with pinned versions, `pytest` setup, optional GitHub Actions running the CPU smoke tests | Fresh clone + `pip install -r requirements.txt` + `pytest` passes. |
 | X2 ⏱ | `run_eval.py`: wraps the **unmodified** official `evaluate-v2.0.py`, writes C7 JSON. `make_tables.py` aggregates `results/runs/*.json` → mean ± std tables (CSV + LaTeX) | A dummy prediction file (e.g. first-sentence answers) evaluates end to end. Script output matches the official script exactly. |
 | X3 | `significance.py`: paired bootstrap (10k resamples) and approximate randomisation on per-question EM/F1 (and per-question Recall@1 for rankers) between any two systems | Applied to every row-pair the paper compares. p-values in tables. |
 | X4 | `error_analysis.py`: automatic, mutually exclusive categories, applied in this order: **(1) wrong sentence** (prediction not in the gold sentence; uses C3), **(2) boundary** (overlaps gold, EM = 0), **(3) numeric/date** (gold is a number or date by spaCy NER or regex), **(4) entity** (gold is a named entity, prediction is a different span), **(5) other**. Slices: question type (wh-word), context length (single vs. multi-window), answer length. **Evidence-conditioned accuracy:** P(answer correct \| top-1 sentence correct) vs. P(answer correct \| top-1 wrong), for span-only (span-implied ranking) and the full model (C8). **Manual audit** of 100 errors of the full model and 100 of span-only | Error table and one figure for §6. Examples box with 2–3 illustrative cases. "Wrong sentence" errors compared between span-only and the full model, which directly tests the method. |
 | X5 | −Negatives runs (R5, 3 seeds) | 3 run JSONs. |
-| X6 | Reproducibility package: `README.md` (environment, data download, one command per table), `scripts/run_all.sh`, `configs/final_checkpoints.yaml`, links to checkpoints, the attribution list of external code, and the final submission zip (code + external code + data instructions) | A teammate who did not write it reproduces one table from the README alone. |
+| X6 | Reproducibility package: `scripts/run_all.sh` (one command per results table; Damian copies these into README §6), `configs/final_checkpoints.yaml`, the attribution list of external code, and the final submission zip (code + external code + data instructions). **Reproduction check:** a teammate who did not write the code reproduces one table from the README alone | Check passed at M4. Submission zip built and tested at M6. |
 | X7 | Paper integration: ACL template `main.tex`, section files, `refs.bib`, consistent notation and figure style, **page-limit and font check** (4 pages of content + 1 page of references, Times 11pt) | Compiles cleanly. Within limits. No overfull boxes. |
 
 ---
@@ -314,12 +315,12 @@ One rehearsal with the full team before recording.
 | Member | Build | Experiments | Analysis | Writing + slides | Review/integration | **Total** |
 |---|---|---|---|---|---|---|
 | Clemen | 16 (C1–C3) | 6 (R2, R6b) | 6 (C6 survey) | 8 (§2, §3.4, §4.1, §5.3, slides/video lead) + 2 talk | 3 | **≈ 41** |
-| Damian | 17 (D0–D2) | 9 (D3, R3) | 2 (D5) | 5 (§1, §3.1, §4.2) + 2 talk | 4 (most integration PRs) | **≈ 39** |
+| Damian | 17 (D0–D2) | 9 (D3, R3) | 2 (D5) | 6 (§1, §3.1, §4.2, README D7) + 2 talk | 4 (most integration PRs) | **≈ 40** |
 | Jun Yip | 12 (J1–J2) | 3 (R6) | 15 (J3, J5, J6) | 5 (§3.2, §5.4) + 2 talk | 3 | **≈ 40** |
 | Gokul | 18 (G1–G2) | 10 (G3, G4) | 3 (G5) | 5 (§3.3, §5.2) + 2 talk | 3 | **≈ 41** |
-| Xin Hui | 9 (X1–X2) | 3 (R5) | 15 (X3, X4) | 6 (§5.1, §6, §7, X7) + 2 talk | 6 (X6 reproducibility) | **≈ 41** |
+| Xin Hui | 8 (X1–X2) | 3 (R5) | 15 (X3, X4) | 6 (§5.1, §6, §7, X7) + 2 talk | 4 (X6 reproducibility) | **≈ 38** |
 
-Re-check this table at M2. If someone is more than about 5 h ahead or behind, move a WP (good candidates to move: C6 survey, J6 ranking metrics, D5 efficiency, X3 significance, D6 stretch).
+Xin Hui is lightest after README and `.gitignore` moved to Damian. If Xin Hui has slack at M2, they can take D5 (efficiency table) from Damian or J6's span-implied ranking from Jun Yip. Re-check this table at M2. If someone is more than about 5 h ahead or behind, move a WP (good candidates to move: C6 survey, J6 ranking metrics, D5 efficiency, X3 significance, D6 stretch).
 
 ---
 
@@ -341,7 +342,7 @@ Re-check this table at M2. If someone is more than about 5 h ahead or behind, mo
 
 ## 11. Repository & submission compliance
 
-- **Repo visibility: make it PRIVATE now.** It is currently public. Course projects in progress should not be publicly visible: other students could copy them, and NUS plagiarism rules can hold the source group responsible too. Add the other 4 members as collaborators.
+- **Repo visibility: private (done).** Keep it private until grading is over: other students could copy a public project, and NUS plagiarism rules can hold the source group responsible too. Add the other 4 members as collaborators.
 - The brief requires us to submit **source code, all external (supporting) code and data, and instructions on how to run**. This is covered by X6. SQuAD JSON and checkpoints stay out of git, but the submission must say exactly how to obtain them, and include them in the submission bundle if the size limit allows.
 - **Closed-source LLMs and APIs (ChatGPT, Gemini, …) are not allowed** in the project pipeline. All models here are open checkpoints.
 - The report must state clearly **which parts are ours vs. external**. The file-ownership table (§3) and run records make this easy to write.
@@ -354,8 +355,9 @@ Re-check this table at M2. If someone is more than about 5 h ahead or behind, mo
 ## 12. Kickoff checklist (Day 1)
 - [ ] Everyone reads this file and comments on the PR (approve or request changes)
 - [ ] Confirm the deadline from Canvas and shift §7 dates
-- [ ] Damian: repo private, collaborators, branch protection (D0)
-- [ ] Xin Hui: skeleton PR (X1)
+- [x] Damian: repo private, README.md, .gitignore
+- [ ] Damian: collaborators, branch protection (D0)
+- [ ] Xin Hui: skeleton PR (X1: folders, requirements.txt, pytest)
 - [ ] Each member: GPU access confirmed (cluster / Colab Pro / own GPU) and posted in chat
 - [ ] Agree on contracts C1–C8 (15-min discussion at the kickoff meeting)
 - [ ] Decide on LaTeX in the repo vs. Overleaf (if Overleaf, still keep one file per section to avoid edit clashes)
