@@ -151,7 +151,8 @@ Results tables: *TBD* (generated into `results/tables/` by `scripts/make_tables.
 |---|---|
 | Article-level data split and feature pipeline | Hugging Face Transformers / Datasets, PyTorch |
 | Evidence labelling, negative candidates, BM25/random negatives | Pretrained `deberta-v3-base` and `bert-base-uncased` checkpoints |
-| Sentence-ranker head, joint loss, online model-mined negatives | Official SQuAD evaluation script `evaluate-v2.0.py` |
+| Sentence-ranker head, joint loss, online model-mined negatives | Official SQuAD evaluation script [`src/qa/eval/evaluate-v2.0.py`](src/qa/eval/evaluate-v2.0.py), committed unmodified (Rajpurkar et al.) |
+| | SQuAD v1.1 data in [`data/raw/`](data/raw/README.md), CC BY-SA 4.0 (Rajpurkar et al., 2016) |
 | Passage-level ranking, joint and sequential decoders | Sentence splitter (spaCy / pysbd), BM25 implementation |
 | Training/eval scripts, error analysis, significance tests | Adversarial SQuAD data (Jia & Liang, 2017) |
 
@@ -159,7 +160,9 @@ Results tables: *TBD* (generated into `results/tables/` by `scripts/make_tables.
 
 ## 6. Setup and reproduction
 
-*TBD (owner: Damian, see [TEAM_TASKS.md](docs/TEAM_TASKS.md) D7; commands come from Clemen's `scripts/run_all.sh`, C9).* This section will cover environment setup, the data download (SQuAD files are not committed), one command per results table, and links to trained checkpoints.
+*TBD (owner: Damian, see [TEAM_TASKS.md](docs/TEAM_TASKS.md) D7; commands come from Clemen's `scripts/run_all.sh`, C9).* This section will cover environment setup, one command per results table, and links to trained checkpoints.
+
+**Data:** SQuAD v1.1 is already in the repo at `data/raw/` (`train-v1.1.json`, `dev-v1.1.json`). Check it with `cd data/raw && shasum -a 256 -c SHA256SUMS`. `dev-v1.1.json` is our **test set**: use it only for final, frozen checkpoints. Adversarial SQuAD (evaluation only) is fetched separately by `scripts/download_data.sh`.
 
 ---
 

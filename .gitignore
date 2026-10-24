@@ -1,5 +1,12 @@
-# --- Data (SQuAD / AddSent come from Canvas or HF; see README) ---
-data/
+# --- Data: only the raw SQuAD v1.1 files are committed (see data/raw/README.md).
+# Processed data, evidence annotations and AddSent stay local. ---
+data/*
+!data/raw/
+data/raw/*
+!data/raw/train-v1.1.json
+!data/raw/dev-v1.1.json
+!data/raw/SHA256SUMS
+!data/raw/README.md
 
 # --- Training outputs and model weights (share via Drive / private HF Hub) ---
 outputs/
