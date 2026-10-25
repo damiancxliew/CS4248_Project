@@ -184,7 +184,7 @@ Status key: ☐ not started · 🟡 in progress / partial (mocked) · 🚧 block
 | C7a slide template | ☐ | |
 | C4 (R2) | ☐ | |
 | C3 (R9a, R9b) | 🟡 | Mocked: top-k restriction, k-sweep, Recall@k ceiling, ranker-vs-reader error split (branch `clemen/sequential-decoder`). Waiting on: `k = all` equality test needs Gokul's `evidence_decoder.py` (G2); real C6/C8 inputs (Damian D2/D4, Jun Yip J6, Gokul G2/G4); freezing `k` needs G3. |
-| C8 | ☐ | |
+| C8 | 🟡 | Mocked: 5 categories, slices, evidence-conditioned accuracy, audit-sheet CSV (branch `clemen/sequential-decoder`). Missing: the figure, real R3/R4 seed-42 predictions (Damian D4, Gokul G4), real C8 ranking for the full model (Gokul). spaCy: needs `spacy` + `en_core_web_sm` in `requirements.txt` (Xin Hui X1); NER is injectable, regex fallback covers numbers only. |
 | C5 (R6b) | ☐ | |
 | C9 | ☐ | |
 | C7b video | ☐ | |

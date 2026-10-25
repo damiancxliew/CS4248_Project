@@ -24,3 +24,11 @@ rank-bm25==0.2.2
 pandas==2.2.3
 matplotlib==3.10.1
 pytest==8.3.5
+
+# Error analysis (C8, error_analysis.py). After pip, run: python -m spacy download en_core_web_sm  (3.8.0)
+spacy==3.8.16
+# Newer releases of these three break spaCy 3.8.16's tokenizer loading
+# (OverflowError in Tokenizer._flush_specials); verified working with these pins.
+murmurhash<1.0.14
+preshed<3.0.11
+cymem<2.0.12
