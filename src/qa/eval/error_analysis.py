@@ -14,24 +14,16 @@ Inputs follow the team contracts (TEAM_TASKS 3.1):
   gold:     {qid: [answer_text, ...]}                (SQuAD references)
 """
 import csv
-import importlib.util
 import random
 import re
 from collections import defaultdict
-from pathlib import Path
+
+from qa.eval.official import load_official_metrics as _official
 
 CATEGORIES = ("wrong_sentence", "boundary", "numeric_date", "entity", "other")
 NUMERIC_DATE_LABELS = {"DATE", "TIME", "CARDINAL", "ORDINAL", "PERCENT", "MONEY", "QUANTITY"}
 WH_WORDS = ("what", "who", "whom", "whose", "when", "where", "which", "why", "how")
-_NUMERIC_RE = re.compile(r"^[\s$£€~]*\d[\d,.\s]*(%|st|nd|rd|th|s)?(\s+\w+)?$", re.I)
-
-
-def _official():
-    path = Path(__file__).resolve().parent / "evaluate-v2.0.py"
-    spec = importlib.util.spec_from_file_location("squad_official_eval", path)
-    module = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(module)
-    return module
+_NUMERIC_RE = re.compile(r"^[\s$£€~]*\d[\d,.\s]*(%|st|nd|rd|th|s)?(\s+(thousand|million|billion|percent|dollars))?$", re.I)
 
 
 def spacy_entity_label(model="en_core_web_sm"):
@@ -66,7 +58,7 @@ def overlaps(gold_answers, pred):
 
 def categorise(pred, pred_sent, gold_sent, gold_answers, entity_label):
     """Category for one wrong prediction (see module docstring)."""
-    if pred_sent != gold_sent:
+    if pred_sent is None or int(pred_sent) != int(gold_sent):  # None: nothing was predicted
         return "wrong_sentence"
     if overlaps(gold_answers, pred):
         return "boundary"
@@ -85,7 +77,7 @@ def question_type(question):
 
 
 def answer_length_bin(gold_answers):
-    n = len(gold_answers[0].split())
+    n = len((gold_answers or [""])[0].split())
     return "1" if n == 1 else "2-3" if n <= 3 else "4+"
 
 
@@ -94,9 +86,10 @@ def analyse(preds, pred_sent, evidence, gold, entity_label=regex_entity_label):
     official = _official()
     out = {}
     for qid, ev in evidence.items():
-        correct = bool(max(official.compute_exact(g, preds[qid]) for g in gold[qid]))
+        golds = gold[qid] or [""]  # the official script maps empty gold to ['']
+        correct = bool(max(official.compute_exact(g, preds[qid]) for g in golds))
         category = None if correct else categorise(
-            preds[qid], pred_sent[qid], ev["gold_sent"], gold[qid], entity_label
+            preds[qid], pred_sent[qid], ev["gold_sent"], golds, entity_label
         )
         out[qid] = {"correct": correct, "category": category}
     return out
@@ -135,6 +128,12 @@ def evidence_conditioned_accuracy(records, top1_sent, evidence):
     return {"top1_correct": acc(right), "top1_wrong": acc(wrong)}
 
 
+def _safe_cell(value):
+    """Prefix a quote so spreadsheets do not evaluate text starting with = + - @ as a formula."""
+    text = str(value)
+    return "'" + text if text[:1] in ("=", "+", "-", "@") else text
+
+
 def write_audit_sheet(path, records, questions, preds, gold, n=100, seed=42):
     """CSV of up to n sampled errors for the human audit. `human_label` is left blank."""
     errors = sorted(qid for qid, r in records.items() if not r["correct"])
@@ -143,6 +142,6 @@ def write_audit_sheet(path, records, questions, preds, gold, n=100, seed=42):
         w = csv.writer(f)
         w.writerow(["qid", "question", "gold", "prediction", "auto_category", "human_label"])
         for qid in sample:
-            w.writerow([qid, questions[qid], " | ".join(gold[qid]), preds[qid],
-                        records[qid]["category"], ""])
+            w.writerow([_safe_cell(c) for c in (
+                qid, questions[qid], " ||| ".join(gold[qid]), preds[qid], records[qid]["category"], "")])
     return sample

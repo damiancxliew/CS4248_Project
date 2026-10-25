@@ -16,12 +16,13 @@ data:
 train:
   learning_rate: 3.0e-5
   epochs: 2
-  effective_batch_size: 32
+  per_device_batch_size: 16
+  grad_accum_steps: 2  # effective batch = per_device * accum * n_gpus = 32 on 1 GPU
   optimizer: adamw
   weight_decay: 0.01
   lr_scheduler: linear
   warmup_ratio: 0.1
-  precision: bf16
+  precision: bf16  # needs Ampere+; use fp16 on T4/V100
 
 decode:
   max_answer_len: 30
