@@ -1,6 +1,6 @@
 """Rank-then-read (sequential) decoding: restrict answer spans to the top-k ranked sentences.
 
-Inputs follow the team contracts (TEAM_TASKS 3.1):
+Inputs are following the team contracts:
   C6 nbest:     {qid: [{text, start_logit, end_logit, sent_idx, sent_logprob, score}, ...]}
   C8 sent_rank: {qid: [[sent_idx, score], ...]} sorted best-first, covering every sentence
   C3 evidence:  {"id", "gold_sent", ...} one record per question
