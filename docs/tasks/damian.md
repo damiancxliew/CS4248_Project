@@ -175,11 +175,19 @@ Status key: ☐ not started · 🟡 in progress / partial (mocked) · 🚧 block
 
 | WP | Status | Notes / PR / blocker |
 |---|---|---|
-| D0 | 🟡 | Private repo, README, .gitignore and collaborators done; branch protection left |
-| D1 | ☐ | |
-| D2 | ☐ | |
-| D3 | ☐ | |
-| D4 | ☐ | |
-| D5 | ☐ | |
-| D6 | ☐ | stretch |
-| D7 | ☐ | |
+| D0 | 🟡 | Repo private, README, .gitignore, all 4 collaborators have write. Left: branch protection + squash-only merges; commands handed to Damian (not run by the agent) |
+| D1 | 🟡 partial (mocked) | `train.py`, `configs/base.yaml` on `damian/training-engine` (stacked on PR #41). CPU smoke test < 1 s; a new model class plugs in via `model.class` only. C1/C2 mocked in `tests/damian_mocks.py`; val EM/F1 from the official script directly until `run_eval.py` has an API. 🚧 Xin Hui (X1 PR #41 in review; X8, X9, X2 not started) |
+| D2 | 🟡 partial (mocked) | `span_model.py`, `span_decoder.py` (matches HF reference post-processing in tests), `predict.py` (C6 + `logits.npz`, any checkpoint/split, test needs `--allow-test`). Same branch and blockers as D1 |
+| D3 | 🚧 Xin Hui (X8, X9, X2) + GPU | Needs D1/D2 merged, real C1/C2, GPU access confirmed. Grid + command ready in `configs/deberta_span/span_only.yaml` |
+| D4 | 🚧 D3 | Needs frozen `configs/deberta_span/best.yaml` |
+| D5 | 🚧 Clemen (C4, C3), Gokul (G2, G4) | Also open: where the table is generated (§8) |
+| D6 | ☐ | stretch; needs Damian's go |
+| D7 | 🚧 Clemen (C9) | `.gitignore` fix for `results/runs/` done on `damian/gitignore-results-runs` (reported in PR #41) |
+
+**Raised this session (need an answer from the named person):**
+- Xin Hui: C2 calling convention. `train.py` calls `data.examples_fn(path)` and `data.features_fn(examples, tokenizer, max_seq_len, doc_stride)`; confirm or give the real names/signatures.
+- Xin Hui: how C2 marks context tokens. The decoder accepts either a `sequence_ids` column or `None` offsets outside the context (HF convention); confirm which.
+- Xin Hui: a callable API in `run_eval.py` (predictions + SQuAD file → EM/F1), so `train.py` can switch to it. Also the C7 writer overlap (§8).
+- Gokul + Clemen: C6 `sent_idx` for a span that crosses a sentence boundary is the sentence holding the span's **start**. Your decoders should use the same rule.
+- Gokul: checkpoint selection in `train.py` uses span-only decoding (λ = 0) for every model, since λ is tuned afterwards at inference. Say if you need joint decoding for epoch selection.
+- Clemen: `configs/baselines/bert_base.yaml` key names now exist in `configs/base.yaml`; drop `model.heads`, `train.optimizer`, `train.lr_scheduler` (fixed AdamW + linear) and add `model.encoder: bert-base-uncased`.
