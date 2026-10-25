@@ -180,7 +180,7 @@ Status key: ☐ not started · 🟡 in progress / partial (mocked) · 🚧 block
 
 | WP | Status | Notes / PR / blocker |
 |---|---|---|
-| X1 | ☐ | |
+| X1 | 🟡 / 🚧 | Implementation on `xinhui/repo-skeleton`: planned directories and empty package initialisers, pinned dependencies, pytest setup, offline CPU smoke tests, and optional GitHub Actions. Fresh Python 3.12.10 virtual environment install succeeded; `pytest -q`: 5 passed (one upstream datasets deprecation warning). Folder tracking blocked by Damian's `.gitignore` rule; see below. Not merged. Xin Hui authorised committing and pushing this branch for review. |
 | X8 | ☐ | |
 | X9 | ☐ | |
 | X2 | ☐ | |
@@ -188,3 +188,23 @@ Status key: ☐ not started · 🟡 in progress / partial (mocked) · 🚧 block
 | X10 | ☐ | |
 | X7 | ☐ | |
 | X5 (R5) | ☐ | |
+
+### X1 verification and blocker (25 Oct 2026)
+
+- Fetched `origin`; branch started from `origin/main` at `62a466953c525376b1dd6bddb9a02f3cdf9f1eb1`.
+- Created the layout from TEAM_TASKS §3, with `.gitkeep` files for otherwise-empty tracked directories. `data/processed/` and the local `.venv/` remain ignored.
+- Added [requirements.txt](../../requirements.txt), [pytest.ini](../../pytest.ini), [CPU smoke tests](../../tests/test_environment.py), and [CI](../../.github/workflows/cpu-tests.yml). Tests use synthetic inputs and locally initialised tiny BERT/DeBERTa models; no checkpoint downloads, GPU jobs, or test-set evaluation.
+- Installation exposed an Arrow/NumPy runtime incompatibility despite a clean `pip check`: resolved PyArrow 26 required NumPy 2, while NumPy is pinned to 1.26.4. Explicitly pinning PyArrow 19.0.1 fixed it; all 5 tests passed in 52.36 seconds. CI has been configured but has not run remotely. A separate fresh-clone reproduction check has not been run.
+- Raw SQuAD files and the official evaluator match `origin/main`; other members' module contents were not changed.
+
+```text
+🚧 BLOCKED: Xin Hui / X1 tracked run-record directory
+Needs:      The planned results/runs/ directory must be trackable normally.
+Blocked by: Damian (owner of .gitignore; repository setup, M0)
+Evidence:   git check-ignore -v results/runs/.gitkeep identifies .gitignore:14:runs/.
+            This rule also ignores future results/runs/<run_id>.json records.
+Meanwhile:  Local setup is implemented and its offline CPU tests pass.
+Ask:        Anchor runs/ to /runs/, or explicitly allow results/runs/ and its files.
+```
+
+Draft for Xin Hui to send to Damian: “The `runs/` rule in `.gitignore` also ignores our required `results/runs/` records. Could you anchor it to `/runs/` (or explicitly unignore `results/runs/` and its contents)? `git check-ignore -v results/runs/.gitkeep` reproduces it. I have left your file unchanged.”
