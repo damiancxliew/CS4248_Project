@@ -1,6 +1,6 @@
-# R2: BERT-base span-only baseline (TEAM_TASKS 2.2, 6).
-# PROVISIONAL: values come from the plan; key names are guesses until Damian's
-# configs/base.yaml (D1) lands. Rename keys to match it, and drop anything base.yaml already sets.
+# R2: BERT-base span-only baseline.
+# key names are not confirmed until Damian's configs/base.yaml (D1) is done. 
+# Once Damian done: Rename keys to match it, and drop anything base.yaml already sets.
 run_id: r2_bert_span
 system: bert_span_only
 variant: span_only

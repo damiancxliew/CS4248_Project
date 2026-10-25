@@ -1,4 +1,4 @@
-"""Cached loader for the official SQuAD evaluator (its hyphenated filename blocks a normal import)."""
+"""Cached loader for the official SQuAD evaluator (note: python cannot read hyphen and 2.0)."""
 import importlib.util
 from functools import lru_cache
 from pathlib import Path
