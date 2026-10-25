@@ -180,7 +180,7 @@ Status key: ☐ not started · 🟡 in progress / partial (mocked) · 🚧 block
 
 | WP | Status | Notes / PR / blocker |
 |---|---|---|
-| X1 | 🟡 / 🚧 | Implementation on `xinhui/repo-skeleton`: planned directories and empty package initialisers, pinned dependencies, pytest setup, offline CPU smoke tests, and optional GitHub Actions. Fresh Python 3.12.10 virtual environment install succeeded; `pytest -q`: 5 passed (one upstream datasets deprecation warning). Folder tracking blocked by Damian's `.gitignore` rule; see below. Not merged. Xin Hui authorised committing and pushing this branch for review. |
+| X1 | 🟡 / 🚧 | Implementation on `xinhui/repo-skeleton`: planned directories and empty package initialisers, pinned dependencies, pytest setup, and offline CPU smoke tests. Optional GitHub Actions removed at Xin Hui's request after a billing block. Fresh Python 3.12.10 virtual environment install succeeded; `pytest -q`: 5 passed (one upstream datasets deprecation warning). Folder tracking blocked by Damian's `.gitignore` rule; see below. Not merged. Xin Hui authorised committing and pushing this branch for review. |
 | X8 | ☐ | |
 | X9 | ☐ | |
 | X2 | ☐ | |
@@ -193,8 +193,9 @@ Status key: ☐ not started · 🟡 in progress / partial (mocked) · 🚧 block
 
 - Fetched `origin`; branch started from `origin/main` at `62a466953c525376b1dd6bddb9a02f3cdf9f1eb1`.
 - Created the layout from TEAM_TASKS §3, with `.gitkeep` files for otherwise-empty tracked directories. `data/processed/` and the local `.venv/` remain ignored.
-- Added [requirements.txt](../../requirements.txt), [pytest.ini](../../pytest.ini), [CPU smoke tests](../../tests/test_environment.py), and [CI](../../.github/workflows/cpu-tests.yml). Tests use synthetic inputs and locally initialised tiny BERT/DeBERTa models; no checkpoint downloads, GPU jobs, or test-set evaluation.
-- Installation exposed an Arrow/NumPy runtime incompatibility despite a clean `pip check`: resolved PyArrow 26 required NumPy 2, while NumPy is pinned to 1.26.4. Explicitly pinning PyArrow 19.0.1 fixed it; all 5 tests passed in 52.36 seconds. CI has been configured but has not run remotely. A separate fresh-clone reproduction check has not been run.
+- Added [requirements.txt](../../requirements.txt), [pytest.ini](../../pytest.ini), and [CPU smoke tests](../../tests/test_environment.py). Tests use synthetic inputs and locally initialised tiny BERT/DeBERTa models; no checkpoint downloads, GPU jobs, or test-set evaluation.
+- Installation exposed an Arrow/NumPy runtime incompatibility despite a clean `pip check`: resolved PyArrow 26 required NumPy 2, while NumPy is pinned to 1.26.4. Explicitly pinning PyArrow 19.0.1 fixed it; all 5 tests passed in 52.36 seconds. A separate fresh-clone reproduction check has not been run.
+- GitHub Actions could not start because GitHub reported an account billing/spending-limit block. Xin Hui requested removal of the optional workflow; local tests remain available with `python -m pytest -q` in the project environment. Remote CI is not required for X1 and can be added later if the team chooses.
 - Raw SQuAD files and the official evaluator match `origin/main`; other members' module contents were not changed.
 
 ```text
