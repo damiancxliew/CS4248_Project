@@ -8,8 +8,7 @@ Inputs follow the team contracts (TEAM_TASKS 3.1):
 The reader picks, among the n-best spans lying in the kept sentences, the one with the
 highest start_logit + end_logit (no sentence term; that is the joint decoder's job).
 """
-import importlib.util
-from pathlib import Path
+from qa.eval.official import load_official_metrics
 
 K_ALL = "all"
 DEFAULT_KS = (1, 2, 3, K_ALL)
@@ -27,7 +26,7 @@ def decode_question(nbest, ranking, k):
     None means no candidate falls in the kept sentences (the reader has nothing to read).
     """
     kept = top_k_sentences(ranking, k)
-    in_kept = [c for c in nbest if c["sent_idx"] in kept]
+    in_kept = [c for c in nbest if int(c["sent_idx"]) in kept]
     if not in_kept:
         return None
     return max(in_kept, key=lambda c: c["start_logit"] + c["end_logit"])["text"]
@@ -35,6 +34,7 @@ def decode_question(nbest, ranking, k):
 
 def decode(nbest, sent_rank, k):
     """{qid: answer_text} for budget k. Questions with nothing readable get ''."""
+    _check_qids(nbest, sent_rank=sent_rank)
     preds = {}
     for qid, cands in nbest.items():
         text = decode_question(cands, sent_rank[qid], k)
@@ -44,19 +44,20 @@ def decode(nbest, sent_rank, k):
 
 def recall_at_k(sent_rank, evidence, k):
     """Fraction of questions whose gold sentence is in the top-k: the EM/F1-ceiling of rank-then-read."""
+    _check_qids(evidence, sent_rank=sent_rank)
     hits = [
-        evidence[qid]["gold_sent"] in top_k_sentences(sent_rank[qid], k)
+        int(evidence[qid]["gold_sent"]) in top_k_sentences(sent_rank[qid], k)
         for qid in evidence
     ]
     return sum(hits) / len(hits)
 
 
-def _load_official_metrics():
-    path = Path(__file__).resolve().parents[1] / "eval" / "evaluate-v2.0.py"
-    spec = importlib.util.spec_from_file_location("squad_official_eval", path)
-    module = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(module)
-    return module
+def _check_qids(needed, **available):
+    """Fail early with a clear message when an input lacks some of the qids we iterate over."""
+    for name, mapping in available.items():
+        missing = set(needed) - set(mapping)
+        if missing:
+            raise ValueError(f"{name} is missing {len(missing)} qid(s), e.g. {sorted(missing)[:3]}")
 
 
 def error_split(preds, sent_rank, evidence, gold_answers, k):
@@ -65,15 +66,18 @@ def error_split(preds, sent_rank, evidence, gold_answers, k):
     ranker error: gold sentence not in the top-k (the reader cannot recover it)
     reader error: gold sentence kept but the chosen span is not an exact match
     gold_answers: {qid: [answer_text, ...]}
+    "correct" is plain EM, so a span that matches the gold text in a non-gold sentence still counts;
+    exact can therefore exceed recall_at_k, and ranker_error_rate is not 1 - recall.
     """
-    official = _load_official_metrics()
+    _check_qids(evidence, preds=preds, sent_rank=sent_rank, gold_answers=gold_answers)
+    official = load_official_metrics()
     counts = {"correct": 0, "ranker_error": 0, "reader_error": 0}
     for qid, ev in evidence.items():
         kept = top_k_sentences(sent_rank[qid], k)
         exact = max(official.compute_exact(g, preds[qid]) for g in gold_answers[qid])
         if exact:
             counts["correct"] += 1
-        elif ev["gold_sent"] not in kept:
+        elif int(ev["gold_sent"]) not in kept:
             counts["ranker_error"] += 1
         else:
             counts["reader_error"] += 1
@@ -83,7 +87,7 @@ def error_split(preds, sent_rank, evidence, gold_answers, k):
 
 def sweep(nbest, sent_rank, evidence, gold_answers, ks=DEFAULT_KS):
     """Run every k on one split (use val to pick k); returns {k: {recall_at_k, exact, error split}}."""
-    official = _load_official_metrics()
+    official = load_official_metrics()
     results = {}
     for k in ks:
         preds = decode(nbest, sent_rank, k)
