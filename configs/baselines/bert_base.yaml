@@ -1,0 +1,30 @@
+# R2: BERT-base span-only baseline (TEAM_TASKS 2.2, 6).
+# PROVISIONAL: values come from the plan; key names are guesses until Damian's
+# configs/base.yaml (D1) lands. Rename keys to match it, and drop anything base.yaml already sets.
+run_id: r2_bert_span
+system: bert_span_only
+variant: span_only
+
+model:
+  encoder: bert-base-uncased
+  heads: [span]
+
+data:
+  max_seq_len: 384
+  doc_stride: 128
+
+train:
+  learning_rate: 3.0e-5
+  epochs: 2
+  effective_batch_size: 32
+  optimizer: adamw
+  weight_decay: 0.01
+  lr_scheduler: linear
+  warmup_ratio: 0.1
+  precision: bf16
+
+decode:
+  max_answer_len: 30
+  n_best: 20
+
+seeds: [13, 42, 87]
