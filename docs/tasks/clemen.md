@@ -183,7 +183,7 @@ Status key: ☐ not started · 🟡 in progress / partial (mocked) · 🚧 block
 |---|---|---|
 | C7a slide template | ☐ | |
 | C4 (R2) | ☐ | |
-| C3 (R9a, R9b) | ☐ | |
+| C3 (R9a, R9b) | 🟡 | Mocked: top-k restriction, k-sweep, Recall@k ceiling, ranker-vs-reader error split (branch `clemen/sequential-decoder`). Waiting on: `k = all` equality test needs Gokul's `evidence_decoder.py` (G2); real C6/C8 inputs (Damian D2/D4, Jun Yip J6, Gokul G2/G4); freezing `k` needs G3. |
 | C8 | ☐ | |
 | C5 (R6b) | ☐ | |
 | C9 | ☐ | |
