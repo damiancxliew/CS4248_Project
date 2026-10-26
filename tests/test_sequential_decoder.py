@@ -73,8 +73,20 @@ def test_reader_error_when_gold_sentence_kept_but_span_wrong():
     assert (s["correct"], s["ranker_error"], s["reader_error"]) == (1, 0, 2)
 
 
-def test_sweep_exact_never_exceeds_recall_ceiling():
+def test_sweep_covers_every_k_and_keeps_split_consistent():
     res = sd.sweep(NBEST, SENT_RANK, EVIDENCE, GOLD)
     assert set(res) == {1, 2, 3, sd.K_ALL}
     for r in res.values():
-        assert r["exact"] <= r["recall_at_k"] + 1e-9
+        assert r["correct"] + r["ranker_error"] + r["reader_error"] == r["n"]
+
+
+def test_exact_can_exceed_recall_when_answer_text_repeats_in_another_sentence():
+    # Gold evidence is sentence 2, but the same answer text "2004" also occurs in sentence 0,
+    # which the ranker puts first. At k=1 the span is right by text (EM = 1) although the gold
+    # sentence is not kept (recall@1 = 0), so exact > recall_at_k. EM is text-based on purpose.
+    nbest = {"q": [{"text": "2004", "start_logit": 1.0, "end_logit": 1.0, "sent_idx": 0}]}
+    rank = {"q": [[0, -0.1], [1, -1.0], [2, -2.0]]}
+    res = sd.sweep(nbest, rank, {"q": {"gold_sent": 2}}, {"q": ["2004"]}, ks=(1,))
+    assert res[1]["recall_at_k"] == 0.0
+    assert res[1]["exact"] == 1.0
+    assert res[1]["ranker_error"] == 0
