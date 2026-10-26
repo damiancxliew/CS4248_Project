@@ -1,31 +1,14 @@
-# R2: BERT-base span-only baseline.
-# key names are not confirmed until Damian's configs/base.yaml (D1) is done. 
-# Once Damian done: Rename keys to match it, and drop anything base.yaml already sets.
+# R2: BERT-base span-only baseline (reader of the classic pipeline comparison). Owner: Clemen.
+# configs/base.yaml already holds every shared default (LR 3e-5, 2 epochs, effective batch 32,
+# 384/128, AdamW wd 0.01, 10% warm-up, bf16), which is exactly the BERT recipe in TEAM_TASKS 2.2,
+# so this file lists only what differs.
+#
+#   python -m qa.train --config configs/baselines/bert_base.yaml --seed 42
+#   (seeds 13, 42, 87, one run each)
+
 run_id: r2_bert_span
 system: bert_span_only
 variant: span_only
 
 model:
   encoder: bert-base-uncased
-  heads: [span]
-
-data:
-  max_seq_len: 384
-  doc_stride: 128
-
-train:
-  learning_rate: 3.0e-5
-  epochs: 2
-  per_device_batch_size: 16
-  grad_accum_steps: 2  # effective batch = per_device * accum * n_gpus = 32 on 1 GPU
-  optimizer: adamw
-  weight_decay: 0.01
-  lr_scheduler: linear
-  warmup_ratio: 0.1
-  precision: bf16  # needs Ampere+; use fp16 on T4/V100
-
-decode:
-  max_answer_len: 30
-  n_best: 20
-
-seeds: [13, 42, 87]
