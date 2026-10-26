@@ -175,13 +175,13 @@ Status key: ☐ not started · 🟡 in progress / partial (mocked) · 🚧 block
 
 | WP | Status | Notes / PR / blocker |
 |---|---|---|
-| G1 | 🟡 partial (mocked) | `src/qa/models/evidence_model.py` + `tests/test_evidence_model.py` on local branch `gokul/evidence-model` (based on PR #43, which is stacked on #41; not pushed). Subclasses `SpanModel`; all four `neg_mode`s tested on mock C2/C4 windows; gradients reach both heads; loss falls on a 200-window synthetic overfit. Also trains and predicts through `train.py` / `predict.py` via `model.class` alone (scratch check with mock C4, not committed). `pytest -q`: 44 passed. Not done: overfit on real C2 features, `prepare_features` (raises until unblocked), mined-negative dump (§8). 🚧 Damian (D1/D2: PR #43 open; `prepare_features` gets no split), Jun Yip (J2: C4 not started), Xin Hui (X9: C2 not started) |
+| G1 | 🟡 partial (mocked) | `src/qa/models/evidence_model.py` + `tests/test_evidence_model.py` [PR #44](https://github.com/damiancxliew/CS4248_Project/pull/44) on `gokul/evidence-model`, stacked on PR #43 (itself stacked on #41); rebase onto `main` once those merge. Subclasses `SpanModel`; all four `neg_mode`s tested on mock C2/C4 windows; gradients reach both heads; loss falls on a 200-window synthetic overfit. Also trains and predicts through `train.py` / `predict.py` via `model.class` alone (scratch check with mock C4, not committed). `pytest -q`: 44 passed. Not done: overfit on real C2 features, `prepare_features` (raises until unblocked), mined-negative dump (§8). 🚧 Damian (D1/D2: PR #43 open; `prepare_features` gets no split), Jun Yip (J2: C4 not started), Xin Hui (X9: C2 not started) |
 | G2 | ☐ | 🚧 Damian (D2, `span_decoder.py` in PR #43, for the λ = 0 test). `sentence_ranking.py` can start on mocks, but `logits.npz` lacks the window-to-passage sentence mapping (to raise with Damian / Jun Yip) |
 | G3 | ☐ | 🚧 Damian (D3), Xin Hui (X8, X9), Jun Yip (J1, J2), GPU |
 | G4 (configs, R4, R7) | ☐ | 🚧 G3, Damian (D3) |
 | G5 | ☐ | 🚧 all runs |
 
-**To raise (26 Oct; drafts given to Gokul, not yet posted; need an answer from the named person):**
+**To raise (26 Oct; listed in PR #44; need an answer from the named person):**
 - Damian (PR #43): `prepare_features(features, model_cfg)` is not told the split or data file, so the evidence model can't pick `evidence_{split}.jsonl` for `add_sentence_fields`. Pass `data_file` (or the split) through `build_split`.
 - Damian + Jun Yip: `predict.py` saves `sent_logits` / `sent_mask` but not which passage sentence each window slot is, which C8 needs. Either save it (e.g. add it to `EXTRA_OUTPUTS`) or agree that G2 rebuilds it from the saved offsets + C3. Also pin C4: G1 assumes `sent_ids` are **window-local** slot indices (0..S-1, matching `sent_label` / `neg_cand_mask`).
 - Damian (reply to his PR #43 questions; Gokul decided 26 Oct): agree with both. Epoch selection uses span-only decoding (λ = 0), and `sent_idx` is the sentence holding the span's start. G2's joint decoder uses the same rule.
