@@ -1,0 +1,47 @@
+# Shared defaults for every run (TEAM_TASKS §2.2). Owner: Damian.
+# train.py merges: this file < the experiment config (--config) < --set key.path=value.
+# Experiment configs only list what they change.
+
+run_id: null              # required; the seed is appended, e.g. r3_deberta_span -> r3_deberta_span_s42
+system: null              # C7 "system", e.g. deberta_span_only
+variant: null             # C7 "variant", e.g. span_only
+seed: 42                  # one run per seed: python -m qa.train --config ... --seed 13
+seeds: [13, 42, 87]       # every reported number is mean ± std over these
+device: auto              # auto = cuda > mps > cpu; mixed precision is used on cuda only
+output_dir: outputs       # checkpoints, logits and run.json go to <output_dir>/<run_id>/ (gitignored)
+
+model:
+  class: qa.models.span_model:SpanModel  # any class with the SpanModel interface
+  encoder: microsoft/deberta-v3-base
+  tokenizer: null                         # null = same as encoder
+  # Model-specific keys (neg_mode, alpha, beta, margin, ...) go here; they reach the model unchanged.
+
+data:
+  train_file: data/processed/train.json   # C1 (Xin Hui, X8)
+  val_file: data/processed/val.json       # C1; all tuning and checkpoint selection
+  test_file: data/raw/dev-v1.1.json       # test set: final checkpoints only, via scripts/run_all.sh
+  # "module:function" hooks into Xin Hui's code; set once squad_io.py (X8) and features.py (X9) land.
+  examples_fn: null   # (squad_file) -> flat examples with id, context, question, answers
+  features_fn: null   # (examples, tokenizer, max_seq_len, doc_stride) -> C2 features
+  max_seq_len: 384
+  doc_stride: 128
+
+train:                    # AdamW, linear decay after warm-up
+  learning_rate: 3.0e-5   # DeBERTa: frozen by D3 in configs/deberta_span/best.yaml
+  epochs: 2
+  per_device_batch_size: 16
+  grad_accum_steps: 2     # effective batch 32 on one GPU
+  weight_decay: 0.01
+  warmup_ratio: 0.1
+  max_grad_norm: 1.0
+  precision: bf16         # bf16 (A100/H100) | fp16 (T4; watch DeBERTa overflow) | fp32
+  eval_batch_size: 64
+  log_every: 50           # optimiser steps
+
+decode:
+  n_best: 20
+  max_answer_len: 30      # tokens
+
+wandb:
+  enabled: false          # needs `pip install wandb` and `wandb login`; never commit the key
+  project: cs4248-g14
