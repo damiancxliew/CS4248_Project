@@ -180,8 +180,8 @@ Status key: ☐ not started · 🟡 in progress / partial (mocked) · 🚧 block
 
 | WP | Status | Notes / PR / blocker |
 |---|---|---|
-| X1 | 🟡 / 🚧 | Implementation on `xinhui/repo-skeleton`: planned directories and empty package initialisers, pinned dependencies, pytest setup, and offline CPU smoke tests. Optional GitHub Actions removed at Xin Hui's request after a billing block. Fresh Python 3.12.10 virtual environment install succeeded; `pytest -q`: 5 passed (one upstream datasets deprecation warning). Folder tracking blocked by Damian's `.gitignore` rule; see below. Not merged. Xin Hui authorised committing and pushing this branch for review. |
-| X8 | ☐ | |
+| X1 | ✅ | Merged in [PR #41](https://github.com/damiancxliew/CS4248_Project/pull/41). Damian resolved the run-record ignore rule in [PR #42](https://github.com/damiancxliew/CS4248_Project/pull/42), also merged. Optional remote CI was removed at Xin Hui's request; local CPU tests remain. |
+| X8 | 🟡 | Implemented and live-data verified on `xinhui/data-pipeline` based on merged main `e8a037c`. C1 splits, statistics, loader, and download/check script are ready. Xin Hui authorised switching from unavailable CodaLab to HF; downloaded and validated 3,560 AddSent / 1,787 AddOneSent questions at a pinned Parquet revision. No remaining X8 blocker. Xin Hui authorised committing, pushing, and opening a PR for review; not merged. |
 | X9 | ☐ | |
 | X2 | ☐ | |
 | X3 | ☐ | |
@@ -199,7 +199,7 @@ Status key: ☐ not started · 🟡 in progress / partial (mocked) · 🚧 block
 - Raw SQuAD files and the official evaluator match `origin/main`; other members' module contents were not changed.
 
 ```text
-🚧 BLOCKED: Xin Hui / X1 tracked run-record directory
+RESOLVED (26 Oct 2026, merged PR #42): Xin Hui / X1 tracked run-record directory
 Needs:      The planned results/runs/ directory must be trackable normally.
 Blocked by: Damian (owner of .gitignore; repository setup, M0)
 Evidence:   git check-ignore -v results/runs/.gitkeep identifies .gitignore:14:runs/.
@@ -209,3 +209,31 @@ Ask:        Anchor runs/ to /runs/, or explicitly allow results/runs/ and its fi
 ```
 
 Draft for Xin Hui to send to Damian: “The `runs/` rule in `.gitignore` also ignores our required `results/runs/` records. Could you anchor it to `/runs/` (or explicitly unignore `results/runs/` and its contents)? `git check-ignore -v results/runs/.gitkeep` reproduces it. I have left your file unchanged.”
+
+### X8 implementation and verification (26 Oct 2026)
+
+- Xin Hui explicitly asked to start X8 before X1 merged. Created `xinhui/data-pipeline` from the tested X1 commit `8adc0db` while PR #41 was in review. After PRs #41/#43/#42 merged, fast-forwarded to `origin/main` at `e8a037c`, preserving all uncommitted X8 changes. The upstream X1 dependency is now satisfied.
+- Added [squad_io.py](../../src/qa/data/squad_io.py), [download_data.sh](../../scripts/download_data.sh), and [test_squad_io.py](../../tests/test_squad_io.py). No other member's files changed.
+- C1: `data/processed/train.json`, `val.json`, and `split_titles.json` are generated and ignored. Membership uses sorted unique article titles, seed 2026, and a rounded 10% title holdout; repeated titles stay together and original article/question order and all references are preserved. The manifest includes the input SHA-256.
+- Real split: train **398 articles / 16,915 contexts / 78,259 questions**; val **44 articles / 1,981 contexts / 9,340 questions**. Zero overlapping titles or question IDs. All 87,599 source questions, contexts, and answer annotations are preserved. Regeneration produces identical bytes for all split/statistics outputs. Both raw-file SHA-256 values match the committed manifest.
+- Generated [data_stats.csv](../../results/tables/data_stats.csv), [data_stats.tex](../../results/tables/data_stats.tex), and ignored `data/processed/dataset_stats.json`. The JSON contains context/answer word-length distributions and question-type counts. Word lengths use whitespace splitting; answer statistics use the first reference per question. No answer text/offset mismatches were found. Official dev was only hashed, not parsed for statistics or evaluated.
+- Damian's `data.examples_fn` can be set to `qa.data.squad_io:load_examples`. It returns an HF Dataset with `id`, `title`, `context`, `question`, and `answers` containing parallel `text` and `answer_start` lists. A one-epoch, synthetic CPU test through PR #43's real training hook passed; the X9 features hook remains mocked. No training on real SQuAD data occurred.
+- Initial `pytest -q`: **23 passed**, with one upstream Datasets deprecation warning. Git Bash syntax check and `bash scripts/download_data.sh --check-only` passed. Downloader tests cover checksum failure, preserving previous files on failure, HF revision pinning, and SQuAD-format conversion using mocked responses. Live adversarial-data verification was completed on 27 Oct (see below).
+- Prepare on PowerShell from the repository root: `$env:PYTHONPATH='src'; .venv/Scripts/python.exe -m qa.data.squad_io prepare`. Check raw files with `bash scripts/download_data.sh --check-only` (Git Bash on Windows). The script automatically uses the local virtual environment, or `QA_PYTHON` if supplied.
+- The source is never chosen automatically. Xin Hui's final selection is HF. Reproduce with `bash scripts/download_data.sh --source hf --revision 0eb158aad5fd6cf738033016948d2fd7d30bed8a`. Outputs are ignored `data/processed/addsent.json`, `addonesent.json`, and `adversarial_sources.json`. CodaLab support remains available with known upstream SHA-256 checks; HF uses an explicit data-only Parquet revision. These files remain separate from the training split.
+- Post-merge compatibility check against main `e8a037c`: **47 tests passed** (3 upstream Datasets deprecation warnings). Added a permanent test in `test_squad_io.py` exercising the real merged `build_split` import/call path with the X8 loader and mock X9 features. No X8 production-code changes were needed. `data/processed/` remains ignored; `results/runs/` is now trackable under Damian's merged `/runs/` fix. The existing skeleton placeholder `results/runs/.gitkeep` is consequently visible as an untracked file. No production files owned by Damian were edited.
+
+```text
+RESOLVED (27 Oct 2026): Xin Hui / X8 live CodaLab download verification
+Needs:      A working download endpoint for the selected original CodaLab release.
+Blocked by: External CodaLab service (expired HTTPS certificate); source choice is resolved.
+Evidence:   Live download failed with CERTIFICATE_VERIFY_FAILED: certificate has expired.
+            Independent curl check returned SEC_E_CERT_EXPIRED; HTTP redirects to the same HTTPS URL.
+Meanwhile:  C1 splits, dataset statistics, loader integration, and checksum verification are complete locally.
+Resolution: Xin Hui authorised HF instead; downloaded and validated the pinned data-only mirror.
+```
+
+- Xin Hui selected CodaLab on 27 Oct. Ran `bash scripts/download_data.sh --source codalab` with network access; the first bundle request failed during TLS verification, before any adversarial files were published. The existing raw/train/validation data was not changed. No source switch or certificate-verification bypass was made.
+- Xin Hui then explicitly authorised HF. Its main revision `878c103ae1e50c1874f51df47321c70624713161` contains a legacy Python loader that delegates back to CodaLab. Updated the HF path to read data-only Parquet URLs at the verified `refs/convert/parquet` commit `0eb158aad5fd6cf738033016948d2fd7d30bed8a`, using the built-in Parquet loader. No remote dataset code is executed.
+- Live verification: **3,560 AddSent** and **1,787 AddOneSent** questions; zero answer-text/offset mismatches across all references; both files load with `load_examples`; saved output hashes match provenance. Generated JSON hashes: AddSent `079ad1b19c43b31325b99ddd45d2d6e5b92e4611dbd6a96b008daa4df2992526`, AddOneSent `59663216a9ed6de4d6bb2c9a3a661e34839bb926039d1e637ac9ebcb70f55101`. These are hashes of converted project JSON, not the original CodaLab byte hashes. Raw SQuAD checksums remain unchanged and all downloaded files are ignored by Git. No model evaluation or training on adversarial data occurred.
+- After the HF loader change, the full local suite passed again: **47 passed**, with 3 upstream Datasets deprecation warnings. Editor diagnostics and `git diff --check` also passed.
