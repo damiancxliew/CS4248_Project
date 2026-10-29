@@ -180,7 +180,7 @@ Status key: ☐ not started · 🟡 in progress / partial (mocked) · 🚧 block
 
 | WP | Status | Notes / PR / blocker |
 |---|---|---|
-| J1 | ☐ | |
+| J1 | 🟡 | Code complete on branch `junyip/evidence-labels` (not committed): split (pysbd; 0.12% answers cut vs. 0.17% spaCy parser, `scripts/compare_splitters.py`), per-context merge, gold sentence (`answers[0]`), negative candidates (exact match on all reference answers), per-paragraph BM25 with Lucene non-negative IDF (raw-train Recall@1 78.2% vs. 61.8% Okapi), lexical/random negatives (seed 2026 per qid), C3 writer + stats CLI. 25 tests. 🚧 Final train/val/AddSent C3 files blocked by Xin Hui X8 (PR #45, in review); test C3 can be built from `data/raw/dev-v1.1.json` now |
 | J2 | ☐ | |
 | J6a (R1) | ☐ | |
 | J6b | ☐ | |
