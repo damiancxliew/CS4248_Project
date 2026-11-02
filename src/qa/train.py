@@ -223,8 +223,8 @@ def train(cfg, record=False, log=print):
     model_cls = import_object(cfg["model"]["class"])
     tokenizer = AutoTokenizer.from_pretrained(cfg["model"].get("tokenizer") or cfg["model"]["encoder"])
     model = model_cls.build(cfg["model"]).to(device)
-    _, train_features = build_split(cfg, cfg["data"]["train_file"], tokenizer, model_cls)
-    val_examples, val_features = build_split(cfg, cfg["data"]["val_file"], tokenizer, model_cls)
+    _, train_features = build_split(cfg, cfg["data"]["train_file"], tokenizer, model_cls, "train")
+    val_examples, val_features = build_split(cfg, cfg["data"]["val_file"], tokenizer, model_cls, "val")
 
     generator = torch.Generator().manual_seed(cfg["seed"])
     loader = batches(train_features, model_cls.input_keys + model_cls.label_keys, model_cls.pad_values,
