@@ -20,9 +20,10 @@ data:
   train_file: data/processed/train.json   # C1 (Xin Hui, X8)
   val_file: data/processed/val.json       # C1; all tuning and checkpoint selection
   test_file: data/raw/dev-v1.1.json       # test set: final checkpoints only, via scripts/run_all.sh
-  # "module:function" hooks into Xin Hui's code; set once squad_io.py (X8) and features.py (X9) land.
-  examples_fn: null   # (squad_file) -> flat examples with id, context, question, answers
-  features_fn: null   # (examples, tokenizer, max_seq_len, doc_stride) -> C2 features
+  # "module:function" hooks into Xin Hui's code (X8, X9). Prepare the split first:
+  #   PYTHONPATH=src python -m qa.data.squad_io prepare
+  examples_fn: qa.data.squad_io:load_examples      # (squad_file) -> flat examples (C1)
+  features_fn: qa.data.features:build_features     # (examples, tokenizer, max_seq_len, doc_stride) -> C2
   max_seq_len: 384
   doc_stride: 128
 

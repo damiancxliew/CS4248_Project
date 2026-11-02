@@ -64,6 +64,21 @@ def test_any_file_can_be_predicted(trained, tmp_path):
     assert len(json.loads(paths["predictions"].read_text())) == 150
 
 
+def test_predict_passes_its_split_to_prepare_features(trained, tmp_path, monkeypatch):
+    from qa.models.span_model import SpanModel
+
+    checkpoint, cfg = trained
+    seen = []
+
+    def recording(cls, features, model_cfg, split=None, data_file=None):
+        seen.append((split, str(data_file)))
+        return features
+
+    monkeypatch.setattr(SpanModel, "prepare_features", classmethod(recording))
+    predict(checkpoint, "addsent", data_file=cfg["data"]["val_file"], out_dir=tmp_path, device="cpu")
+    assert seen == [("addsent", str(cfg["data"]["val_file"]))]
+
+
 def test_test_split_needs_the_run_all_flag(trained, tmp_path):
     checkpoint, _ = trained
     with pytest.raises(SystemExit, match="run_all.sh"):
