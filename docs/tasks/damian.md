@@ -176,8 +176,8 @@ Status key: ☐ not started · 🟡 in progress / partial (mocked) · 🚧 block
 | WP | Status | Notes / PR / blocker |
 |---|---|---|
 | D0 | 🟡 | Repo private, README, .gitignore, all 4 collaborators have write. Left: branch protection + squash-only merges; commands handed to Damian (not run by the agent) |
-| D1 | 🟡 partial (mocked) | `train.py`, `configs/base.yaml` on `damian/training-engine` (stacked on PR #41). CPU smoke test < 1 s; a new model class plugs in via `model.class` only. C1/C2 mocked in `tests/damian_mocks.py`; val EM/F1 from the official script directly until `run_eval.py` has an API. 🚧 Xin Hui (X1 PR #41 in review; X8, X9, X2 not started) |
-| D2 | 🟡 partial (mocked) | `span_model.py`, `span_decoder.py` (matches HF reference post-processing in tests), `predict.py` (C6 + `logits.npz`, any checkpoint/split, test needs `--allow-test`). Same branch and blockers as D1 |
+| D1 | 🟡 in review | Engine merged in PR #43. Follow-up on `damian/d1-data-hooks` (2 Nov): `configs/base.yaml` points `data.examples_fn` / `features_fn` at the merged `squad_io.load_examples` (X8) / `features.build_features` (X9), unblocking Clemen and real training; `build_split` passes `split` and `data_file` to `prepare_features` (`train`/`val` from `train.py`, the `--split` name from `predict.py`), unblocking Gokul's G1. 64 tests pass. Val EM/F1 still comes from the official script directly until X2 (`run_eval.py`, PR #49) merges |
+| D2 | 🟡 merged (PR #43); real-data check pending | `span_model.py`, `span_decoder.py` (matches HF reference post-processing in tests), `predict.py` (C6 + `logits.npz`, any checkpoint/split, test needs `--allow-test`). Same branch and blockers as D1 |
 | D3 | 🚧 Xin Hui (X8, X9, X2) + GPU | Needs D1/D2 merged, real C1/C2, GPU access confirmed. Grid + command ready in `configs/deberta_span/span_only.yaml` |
 | D4 | 🚧 D3 | Needs frozen `configs/deberta_span/best.yaml` |
 | D5 | 🚧 Clemen (C4, C3), Gokul (G2, G4) | Also open: where the table is generated (§8) |
