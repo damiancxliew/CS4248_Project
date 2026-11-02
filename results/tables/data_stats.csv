@@ -1,0 +1,3 @@
+split,articles,contexts,questions,mean_context_words,median_context_words,p95_context_words,mean_answer_words
+train,398,16915,78259,116.73154005320721,108,210.0,3.2156173730816904
+val,44,1981,9340,115.76728924785462,107,199.0,2.71423982869379
