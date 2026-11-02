@@ -180,7 +180,7 @@ Status key: ☐ not started · 🟡 in progress / partial (mocked) · 🚧 block
 
 | WP | Status | Notes / PR / blocker |
 |---|---|---|
-| J1 | ☐ | |
+| J1 | 🟡 | PR #46 (in review, Gokul). Code complete on branch `junyip/evidence-labels`: split (pysbd; 0.12% answers cut vs. 0.17% spaCy parser, `scripts/compare_splitters.py`), per-context merge, gold sentence (`answers[0]`), negative candidates (exact match on all reference answers), per-paragraph BM25 with Lucene non-negative IDF (raw-train Recall@1 78.2% vs. 61.8% Okapi), lexical/random negatives (seed 2026 per qid), C3 writer + stats CLI. 25 tests. Final C3 files built locally on the C1 splits, test, AddSent and AddOneSent (2 Nov; gitignored). Train: 4.84 sentences per context, 0.13% answers merged, 3.35% sentences excluded, 3.01% single-sentence contexts, 3.01% questions with no candidate |
 | J2 | ☐ | |
 | J6a (R1) | ☐ | |
 | J6b | ☐ | |
