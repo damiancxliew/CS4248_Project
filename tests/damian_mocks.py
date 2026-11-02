@@ -146,6 +146,7 @@ class ToyEvidenceModel(SpanModel):
     input_keys = SpanModel.input_keys + ("toy_sent_ids",)
     pad_values = {**SpanModel.pad_values, "toy_sent_ids": -1}
     seen_neg_modes = []
+    seen_splits = []  # (split, data_file) per prepare_features call
 
     def __init__(self, encoder, neg_mode, **cfg):
         super().__init__(encoder, **cfg)
@@ -154,7 +155,8 @@ class ToyEvidenceModel(SpanModel):
         self.ranker = nn.Linear(encoder.config.hidden_size, 1)
 
     @classmethod
-    def prepare_features(cls, features, model_cfg):
+    def prepare_features(cls, features, model_cfg, split=None, data_file=None):
+        cls.seen_splits.append((split, str(data_file)))
         # Crude "sentence id" per token: count of '.' tokens seen so far in the window.
         def add(row):
             ids, sent = [], 0

@@ -11,8 +11,10 @@ Gokul's evidence model can subclass it and be selected with ``model.class`` in a
 - ``input_keys``: feature columns the model consumes; ``train.py`` batches only these
   plus ``label_keys``. Subclasses extend both (e.g. ``sent_ids``, ``sent_label``).
 - ``pad_values``: padding value per column when features differ in length.
-- ``prepare_features(features, model_cfg)``: hook to add model-specific columns to the
-  C2 features (e.g. C4 ``add_sentence_fields``). Identity here.
+- ``prepare_features(features, model_cfg, split=None, data_file=None)``: hook to add
+  model-specific columns to the C2 features (e.g. C4 ``add_sentence_fields``). ``split``
+  is ``train``, ``val``, ``test`` or a ``predict.py --split`` name (e.g. ``addsent``), so a
+  model can load per-split extras such as ``evidence_{split}.jsonl``. Identity here.
 - ``forward(**batch)`` returns a dict with the C5 outputs ``start_logits`` and
   ``end_logits`` [B, T] (subclasses may add ``sent_logits`` [B, S_max] and ``sent_mask``),
   ``hidden_states`` [B, T, H], and ``loss`` when the label columns are present.
@@ -48,7 +50,7 @@ class SpanModel(nn.Module):
         return cls(encoder, **cfg)
 
     @classmethod
-    def prepare_features(cls, features, model_cfg):
+    def prepare_features(cls, features, model_cfg, split=None, data_file=None):
         return features
 
     def encode(self, input_ids, attention_mask=None, token_type_ids=None):
