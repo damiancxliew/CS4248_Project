@@ -180,8 +180,8 @@ Status key: ☐ not started · 🟡 in progress / partial (mocked) · 🚧 block
 
 | WP | Status | Notes / PR / blocker |
 |---|---|---|
-| J1 | 🟡 | PR #46 (in review, Gokul). Code complete on branch `junyip/evidence-labels`: split (pysbd; 0.12% answers cut vs. 0.17% spaCy parser, `scripts/compare_splitters.py`), per-context merge, gold sentence (`answers[0]`), negative candidates (exact match on all reference answers), per-paragraph BM25 with Lucene non-negative IDF (raw-train Recall@1 78.2% vs. 61.8% Okapi), lexical/random negatives (seed 2026 per qid), C3 writer + stats CLI. 25 tests. Final C3 files built locally on the C1 splits, test, AddSent and AddOneSent (2 Nov; gitignored). Train: 4.84 sentences per context, 0.13% answers merged, 3.35% sentences excluded, 3.01% single-sentence contexts, 3.01% questions with no candidate |
-| J2 | ☐ | |
+| J1 | ✅ | [PR #46](https://github.com/damiancxliew/CS4248_Project/pull/46) merged 2 Nov. Split (pysbd; 0.12% answers cut vs. 0.17% spaCy parser, `scripts/compare_splitters.py`), per-context merge, gold sentence (`answers[0]`), negative candidates (exact match on all reference answers), per-paragraph BM25 with Lucene non-negative IDF (raw-train Recall@1 78.2% vs. 61.8% Okapi), lexical/random negatives (seed 2026 per qid), C3 writer + stats CLI. 25 tests. Final C3 files built locally on the C1 splits, test, AddSent and AddOneSent (2 Nov; gitignored). Train: 4.84 sentences per context, 0.13% answers merged, 3.35% sentences excluded, 3.01% single-sentence contexts, 3.01% questions with no candidate |
+| J2 | 🟡 | PR #47 (in review, Gokul). `sentence_features.py` + 18 tests on branch `junyip/sentence-features`. A sentence counts as visible if any token of it is; tokens go to the sentence they overlap most. Checked against the real `features.py` (X9) on raw train with DeBERTa: answer outside the labelled sentence in 0 of 87,734 windows containing the answer. No new C4 column: G2 rebuilds the slot-to-passage mapping with `token_sentences()` (#51) |
 | J6a (R1) | ☐ | |
 | J6b | ☐ | |
 | J5 | ☐ | |
