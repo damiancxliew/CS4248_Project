@@ -181,7 +181,7 @@ Status key: ☐ not started · 🟡 in progress / partial (mocked) · 🚧 block
 | WP | Status | Notes / PR / blocker |
 |---|---|---|
 | J1 | ☐ | |
-| J2 | ☐ | |
+| J2 | 🟡 | Partial (mocked). `sentence_features.py` + 18 tests on branch `junyip/sentence-features` (not committed). A sentence counts as visible if any token of it is; tokens go to the sentence they overlap most (DeBERTa offsets include the leading space). 🚧 Real-C2 check blocked by Xin Hui X9 (`features.py`, not started on GitHub). Slot-to-passage column for G2 awaiting agreement with Gokul and Damian |
 | J6a (R1) | ☐ | |
 | J6b | ☐ | |
 | J5 | ☐ | |
