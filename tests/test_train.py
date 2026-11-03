@@ -63,6 +63,12 @@ def test_base_config_uses_the_merged_data_code():
     assert data["features_fn"] == "qa.data.features:build_features"
 
 
+def test_base_config_keeps_the_frozen_d3_setting():
+    best = yaml.safe_load((train_mod.ROOT / "configs/deberta_span/best.yaml").read_text())["train"]
+    train_cfg = load_config(train_mod.ROOT / "configs/deberta_span/span_only.yaml")["train"]
+    assert {key: train_cfg[key] for key in best} == best
+
+
 def test_config_layers_and_overrides(tmp_path):
     exp = tmp_path / "exp.yaml"
     exp.write_text(yaml.safe_dump({"run_id": "x", "train": {"epochs": 3}}))
