@@ -1,26 +1,47 @@
 """EvidenceModel (G1): ranker head, L_rank / L_neg in every neg_mode, online mined negatives.
 
-C2 windows and C4 sentence fields are mocked here (synthetic token ids, no tokenizer) until
-features.py (X9) and sentence_features.py (J2) land. Offline tiny encoders only.
-"""
-import random
+Loss and pooling tests use synthetic windows (token ids, no tokenizer). The prepare_features,
+train/predict and dump tests run J2's real ``add_sentence_fields`` on Damian's mock windows with
+mock C3 files. Offline tiny encoders only. The real-data check is opt-in (not run by pytest):
 
+  PYTHONPATH=src python tests/test_evidence_model.py --overfit-real
+"""
+import argparse
+import json
+import random
+import re
+import time
+from pathlib import Path
+
+import numpy as np
 import pytest
 import torch
 from datasets import Dataset
-from transformers import BertConfig
+from transformers import AutoTokenizer, BertConfig
 
+from damian_mocks import (
+    evidence_records,
+    make_squad_file,
+    make_tiny_encoder,
+    smoke_config,
+    squad_examples,
+    squad_features,
+)
+from qa.data.sentence_features import add_sentence_fields
 from qa.models.evidence_model import (
     IGNORE,
     MASKED_LOGIT,
     NEG_MODES,
     EvidenceModel,
+    dump_mined_negatives,
     negative_index,
+    passage_negatives,
     pool_sentences,
     ranking_losses,
 )
 from qa.models.span_model import span_loss
-from qa.predict import batches, import_object, run_inference
+from qa.predict import batches, import_object, predict, read_evidence, run_inference
+from qa.train import train
 
 HPARAMS = {"alpha": 0.3, "beta": 1.0, "margin": 0.5}
 CLS, SEP, KEY = 2, 3, 7  # KEY marks the answer token of a synthetic window
@@ -215,13 +236,157 @@ def test_checkpoint_rebuild_keeps_head_and_config():
     assert sum(p.numel() for p in trained.ranker.parameters()) == hidden + 1  # 769 for base
 
 
-def test_config_and_data_errors_name_the_problem():
+def write_c3(examples, path):
+    """Mock C3 file for Damian's synthetic contexts: every non-gold sentence is a candidate."""
+    records = evidence_records(examples)
+    for record in records.values():
+        cands = [i for i in range(len(record["sentences"])) if i != record["gold_sent"]]
+        record.update(neg_candidates=cands, lex_neg=cands[0] if cands else None,
+                      rand_neg=cands[-1] if cands else None)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text("".join(json.dumps(record) + "\n" for record in records.values()))
+    return records
+
+
+def test_prepare_features_adds_j2_fields_from_the_splits_c3_file(tmp_path):
+    tokenizer = AutoTokenizer.from_pretrained(make_tiny_encoder(tmp_path / "encoder"))
+    examples = squad_examples(make_squad_file(tmp_path / "val.json", 12))
+    windows = squad_features(examples, tokenizer, max_seq_len=40, doc_stride=12)
+    records = write_c3(examples, tmp_path / "c3" / "evidence_val.jsonl")
+    cfg = {"neg_mode": "lexical", "evidence_dir": str(tmp_path / "c3")}
+    out = EvidenceModel.prepare_features(windows, cfg, split="val", data_file=tmp_path / "val.json")
+    expected = add_sentence_fields(windows, records, "lexical")
+    for column in ("sent_ids", "sent_label", "neg_cand_mask", "static_neg_label"):
+        assert out[column] == expected[column]
+
+
+def test_trains_predicts_and_dumps_through_config_only(tmp_path):
+    c3 = tmp_path / "c3"
+    cfg = smoke_config(tmp_path, model_class="qa.models.evidence_model:EvidenceModel", epochs=1,
+                       neg_mode="model", evidence_dir=str(c3), **HPARAMS)
+    for split in ("train", "val"):
+        write_c3(squad_examples(cfg["data"][f"{split}_file"]), c3 / f"evidence_{split}.jsonl")
+    record = train(cfg, log=lambda _: None)
+    assert record["config"]["model"]["evidence_dir"] == str(c3)
+    checkpoint = tmp_path / "outputs" / record["run_id"] / "best"
+    logits = np.load(predict(checkpoint, "val", out_dir=tmp_path / "pred", device="cpu")["logits"])
+    assert {"sent_logits", "sent_mask"} <= set(logits.files)
+
+    rows = dump_mined_negatives(checkpoint, "train", tmp_path / "dump" / "neg.jsonl", n=10, device="cpu")
+    assert len(rows) == 10
+    assert (tmp_path / "dump" / "neg.qids.txt").read_text().split() == [row["id"] for row in rows]
+    evidence = read_evidence(c3 / "evidence_train.jsonl")
+    for row in rows:
+        assert row["mined_neg"] is None or row["mined_neg"] in evidence[row["id"]]["neg_candidates"]
+        assert len(row["sentences"]) == len(evidence[row["id"]]["sentences"])
+    assert any(row["mined_neg"] is not None for row in rows)
+    with pytest.raises(SystemExit, match="test set"):
+        dump_mined_negatives(checkpoint, "test", tmp_path / "dump" / "test.jsonl", device="cpu")
+
+
+def test_mined_slots_map_back_to_passage_sentences():
+    sentences = [[0, 10], [11, 20], [21, 30], [31, 40]]
+    evidence = {"q1": {"sentences": sentences}, "q2": {"sentences": sentences}}
+    offsets = np.full((3, 4, 2), -1)
+    offsets[0, 1:3] = [[21, 30], [31, 40]]  # q1 window shows sentences 2, 3: slot 1 = sentence 3
+    offsets[1, 1:4] = [[0, 10], [11, 20], [21, 30]]  # q1 again: a later window is not used
+    offsets[2, 1:3] = [[11, 20], [31, 40]]  # q2 window shows sentences 1, 3: slot 0 = sentence 1
+    mined = [1, 0, 0]
+    assert passage_negatives(["q1", "q1", "q2"], offsets, evidence, mined) == {"q1": 3, "q2": 1}
+    assert passage_negatives(["q1", "q1"], offsets[:2], evidence, [IGNORE, 2]) == {"q1": 2}
+
+
+def test_config_and_data_errors_name_the_problem(tmp_path):
     with pytest.raises(ValueError, match="neg_mode"):
         make_model("bm25")
-    with pytest.raises(NotImplementedError, match="J2"):
-        EvidenceModel.prepare_features(synthetic_windows(2), {})
+    with pytest.raises(ValueError, match="split"):
+        EvidenceModel.prepare_features(synthetic_windows(2), {"neg_mode": "model"})
+    with pytest.raises(FileNotFoundError, match="evidence_labels"):
+        EvidenceModel.prepare_features(synthetic_windows(2), {"neg_mode": "model", "evidence_dir": str(tmp_path)},
+                                       split="val")
     model = make_model("random")
     batch = first_batch(synthetic_windows(4), model)
     del batch["static_neg_label"]
     with pytest.raises(ValueError, match="static_neg_label"):
         model(**batch)
+
+
+def overfit_real(n_questions=200, epochs=8, seed=2026):
+    """Real C1/C2/C3/C4 for ``n_questions`` train questions and real deberta-v3-base weights.
+
+    Overfits in ``model`` mode (val = the same questions), trains one epoch in each other
+    neg_mode, then predicts and dumps mined negatives. Downloads the checkpoint on first use.
+    Everything it writes is gitignored: data/processed/overfit200/ and outputs/overfit200/.
+    """
+    from qa.data.evidence_labels import build_evidence, write_evidence
+    from qa.data.squad_io import prepare_splits
+    from qa.train import git_sha, load_config
+
+    root = Path(__file__).resolve().parents[1]
+    work = root / "data/processed/overfit200"
+    train_file = root / "data/processed/train.json"
+    if not train_file.exists():
+        prepare_splits(root / "data/raw/train-v1.1.json", root / "data/processed", work / "tables")
+    squad = json.loads(train_file.read_text())
+    paragraphs = [(article["title"], p) for article in squad["data"] for p in article["paragraphs"]]
+    random.Random(seed).shuffle(paragraphs)
+    chosen, count = [], 0
+    for title, paragraph in paragraphs:
+        if count >= n_questions:
+            break
+        qas = paragraph["qas"][:n_questions - count]
+        chosen.append({"title": title, "paragraphs": [{**paragraph, "qas": qas}]})
+        count += len(qas)
+    subset = {"version": squad.get("version", "1.1"), "data": chosen}
+    work.mkdir(parents=True, exist_ok=True)
+    data_file = work / "train.json"
+    data_file.write_text(json.dumps(subset))
+    records, c3_stats = build_evidence(subset)
+    for split in ("train", "val"):
+        write_evidence(records, work / f"evidence_{split}.jsonl")
+
+    def run(neg_mode, run_epochs):
+        losses = []
+
+        def log(line):
+            print(line, flush=True)
+            found = re.search(r" loss ([0-9.]+)", line)
+            if found:
+                losses.append(float(found.group(1)))
+
+        cfg = load_config(overrides=[
+            f"run_id=overfit_{neg_mode}", "system=evidence_overfit", f"variant={neg_mode}",
+            f"output_dir={root / 'outputs/overfit200'}",
+            "model.class=qa.models.evidence_model:EvidenceModel", f"model.neg_mode={neg_mode}",
+            "model.alpha=0.3", "model.beta=1.0", "model.margin=0.5", f"model.evidence_dir={work}",
+            f"data.train_file={data_file}", f"data.val_file={data_file}",
+            f"train.epochs={run_epochs}", "train.per_device_batch_size=4", "train.grad_accum_steps=2",
+            "train.eval_batch_size=16", "train.log_every=5",
+        ])
+        started = time.time()
+        record = train(cfg, log=log)
+        return {"neg_mode": neg_mode, "epochs": run_epochs, "first_loss": losses[0], "last_loss": losses[-1],
+                "val_exact": record["exact"], "val_f1": record["f1"], "gpu": record["gpu"],
+                "minutes": round((time.time() - started) / 60, 1)}
+
+    runs = [run("model", epochs)] + [run(mode, 1) for mode in ("lexical", "random", "none")]
+    checkpoint = root / "outputs/overfit200/overfit_model_s42/best"
+    logits = np.load(predict(checkpoint, "val", out_dir=work / "pred")["logits"])
+    rows = dump_mined_negatives(checkpoint, "train", work / "mined_negatives_train.jsonl", n=100)
+    report = {
+        "questions": count, "windows": int(len(logits["example_ids"])), "c3_stats": c3_stats, "runs": runs,
+        "dump_rows": len(rows), "dump_with_negative": sum(row["mined_neg"] is not None for row in rows),
+        "git_sha": git_sha(),
+    }
+    (work / "report.json").write_text(json.dumps(report, indent=2) + "\n")
+    print(json.dumps(report, indent=2))
+    return report
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description="Opt-in real-data check for G1 (not run by pytest).")
+    parser.add_argument("--overfit-real", action="store_true", required=True)
+    parser.add_argument("--questions", type=int, default=200)
+    parser.add_argument("--epochs", type=int, default=8)
+    args = parser.parse_args()
+    overfit_real(args.questions, args.epochs)
