@@ -1,0 +1,14 @@
+# D3 result: hyper-parameters frozen for every DeBERTa variant (R3-R7, R6b). Owner: Damian.
+#
+# Chosen by the rule fixed before the search: highest val F1, seed 42, over the 12-run grid
+# (configs/deberta_span/d3_grid.sh summary; records in results/runs/d3_grid/).
+#   lr 3e-5, 2 epochs, warm-up 0.10 -> val F1 88.49 / EM 76.39
+# The top four settings lie within 0.12 F1, and every 1e-5 run trails by 0.5-1.2 F1.
+# Val has one reference answer per question, so its EM sits below dev/test (about 3 references).
+#
+# These equal base.yaml's train defaults, so variant configs need no overrides.
+# tests/test_train.py fails if base.yaml drifts from this file.
+train:
+  learning_rate: 3.0e-5
+  epochs: 2
+  warmup_ratio: 0.1

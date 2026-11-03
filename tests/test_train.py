@@ -49,6 +49,26 @@ def test_new_model_class_plugs_in_through_config_only(tmp_path):
     assert record["config"]["model"]["neg_mode"] == "model"
 
 
+def test_prepare_features_is_told_the_split(tmp_path):
+    ToyEvidenceModel.seen_splits.clear()
+    cfg = smoke_config(tmp_path, model_class="damian_mocks:ToyEvidenceModel", epochs=1, neg_mode="model")
+    train(cfg, log=lambda _: None)
+    assert ToyEvidenceModel.seen_splits == [("train", str(cfg["data"]["train_file"])),
+                                            ("val", str(cfg["data"]["val_file"]))]
+
+
+def test_base_config_uses_the_merged_data_code():
+    data = load_config()["data"]
+    assert data["examples_fn"] == "qa.data.squad_io:load_examples"
+    assert data["features_fn"] == "qa.data.features:build_features"
+
+
+def test_base_config_keeps_the_frozen_d3_setting():
+    best = yaml.safe_load((train_mod.ROOT / "configs/deberta_span/best.yaml").read_text())["train"]
+    train_cfg = load_config(train_mod.ROOT / "configs/deberta_span/span_only.yaml")["train"]
+    assert {key: train_cfg[key] for key in best} == best
+
+
 def test_config_layers_and_overrides(tmp_path):
     exp = tmp_path / "exp.yaml"
     exp.write_text(yaml.safe_dump({"run_id": "x", "train": {"epochs": 3}}))
