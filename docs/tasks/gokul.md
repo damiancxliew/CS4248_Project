@@ -192,4 +192,5 @@ Status key: ☐ not started · 🟡 in progress / partial (mocked) · 🚧 block
   - TEAM_TASKS §5 G1 row: replace "dumps the mined negatives for 200 val questions" with the 3 Nov agreement (export once after training, on J3's 100 train questions).
   - TEAM_TASKS §2.3 step 6: `L_neg` is also skipped when the gold sentence isn't in the window (`sent_label = -100`), since there is no `s_gold`.
 - Clemen (PR #40): the sequential decoder scores by start+end only, so `k = all` can't equal joint decoding when λ > 0. #51 asks Clemen to rank by `score`.
+- Damian (cluster, 4 Nov): `--gpus=h100-47` on `xgpi15` gave a whole H100 NVL (torch: `NVIDIA H100 NVL`, 94 GB), not R3's `MIG 3g.47gb`, though Slurm lists the node as `h100-47:4`. `g3_slurm.sbatch` now excludes it and stops any task that doesn't see the MIG slice. Worth knowing for R4+ seeds, and maybe worth reporting to SoC.
 - Damian (#51): G2 reuses `span_decoder._window_candidates` so both decoders share one candidate set. Can it be treated as shared (or made public)? The λ = 0 test fails if they drift.

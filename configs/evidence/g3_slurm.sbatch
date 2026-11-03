@@ -8,9 +8,13 @@
 #   sbatch --array=0 configs/evidence/g3_slurm.sbatch          # one run (a first check)
 #   sbatch --array=1-11%3 configs/evidence/g3_slurm.sbatch     # the rest; keep the %3 when overriding
 #
-# Keep every task on h100-47: the same setting moves about 0.2 F1 across GPU types, the pick's
-# tie margin. At most 3 tasks at a time also caps the disk at about three models (0.74 GB each),
-# since each task deletes its model once scored (g3_grid.sh).
+# Keep every task on h100-47 (H100 NVL MIG 3g.47gb, R3's GPU): the same setting moves about 0.2 F1
+# across GPU types, the pick's tie margin. Some h100-47 nodes hand out a whole H100 instead
+# (xgpi15 on 4 Nov, so it is excluded), so a task stops before training unless torch sees
+# EXPECT_GPU (default "MIG 3g.47gb"; EXPECT_GPU= skips the check). Resubmit a stopped index with
+# its node added, e.g. `sbatch --exclude=xgpj0,xgpi15,xgpi12 --array=5 ...`.
+# At most 3 tasks at a time also caps the disk at about three models (0.74 GB each), since each
+# task deletes its model once scored (g3_grid.sh).
 #
 # Before the first submit: the splits and both C3 files must exist (bash configs/evidence/g3_grid.sh
 # run <i> names the command for any missing one), and the pretrained checkpoint must be in the
@@ -23,7 +27,7 @@
 #SBATCH --job-name=g3-grid
 #SBATCH --array=0-11%3
 #SBATCH --gpus=h100-47
-#SBATCH --exclude=xgpj0
+#SBATCH --exclude=xgpj0,xgpi15
 #SBATCH --time=03:00:00
 #SBATCH --cpus-per-task=4
 #SBATCH --mem=32G
@@ -38,6 +42,17 @@ export PYTHONUNBUFFERED=1  # step/epoch lines reach the log as they happen
 echo "job ${SLURM_ARRAY_JOB_ID:-local}_${SLURM_ARRAY_TASK_ID:-?} on $(hostname) at $(date)"
 if command -v nvidia-smi >/dev/null 2>&1; then
     nvidia-smi --query-gpu=name,memory.total,compute_cap --format=csv,noheader
+fi
+expect_gpu="${EXPECT_GPU-MIG 3g.47gb}"
+if [[ -n "$expect_gpu" ]]; then  # the name torch reports is the one the records carry
+    python_bin="${QA_PYTHON:-$( [[ -x .venv/bin/python ]] && echo .venv/bin/python || echo python3 )}"
+    gpu_name="$("$python_bin" -c 'import torch; print(torch.cuda.get_device_name(0))')"
+    if [[ "$gpu_name" != *"$expect_gpu"* ]]; then
+        echo "torch sees '$gpu_name' on $(hostname -s), not '$expect_gpu': stopping before training." >&2
+        echo "Resubmit this index with --exclude=xgpj0,xgpi15,$(hostname -s) (see the header)." >&2
+        exit 1
+    fi
+    echo "GPU: $gpu_name"
 fi
 bash configs/evidence/g3_grid.sh run "${SLURM_ARRAY_TASK_ID:?run inside a Slurm array, or set SLURM_ARRAY_TASK_ID}" "$@"
 echo "finished at $(date)"
