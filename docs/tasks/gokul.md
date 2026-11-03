@@ -41,10 +41,10 @@ G1 and G2 are on the critical path. You also write the ablation configs for **ev
 ## 3. Work packages (in order)
 | # | Work package | Done when | Due |
 |---|---|---|---|
-| G1 ⏱ | `evidence_model.py`: wraps the span model and adds the sentence-ranker head, listwise `L_rank` and margin `L_neg`, with `neg_mode ∈ {model, lexical, random, none}`. `model` mode mines the top-scoring candidate online from `neg_cand_mask`. Registered so `train.py` loads it from config. At the end of training, dumps mined negatives for Jun Yip's audit (J3) | Unit test on synthetic `sent_ids` (allowed before J2 lands, using mocks). Each `neg_mode` tested. Loss decreases on a 200-example overfit test. Gradients reach both heads. Trains end to end in all four modes by M2 | M2 |
+| G1 ⏱ | `evidence_model.py`: wraps the span model and adds the sentence-ranker head, listwise `L_rank` and margin `L_neg`, with `neg_mode ∈ {model, lexical, random, none}`. `model` mode mines the top-scoring candidate online from `neg_cand_mask`. Registered so `train.py` loads it from config. Provides the mined-negative export for Jun Yip's audit (J3); the export itself runs once after training (G3/R4) | Unit test on synthetic `sent_ids` (allowed before J2 lands, using mocks). Each `neg_mode` tested. Loss decreases on a 200-example overfit test. Gradients reach both heads. Trains end to end in all four modes by M2 | M2 |
 | G2 ⏱ | `sentence_ranking.py` (C8: window log-softmax → passage-level max) + `evidence_decoder.py` (joint decoding) | Test: a sentence's passage score equals its best window score. `λ = 0` gives output identical to Damian's `span_decoder.py`. C8 merged by M2 | M2 |
 | G3 | Tune on val (seed 42, D3 hyper-parameters frozen, `neg_mode = model`): `α ∈ {0.1, 0.3, 1.0}`, `β ∈ {0.5, 1.0}`, `m ∈ {0.5, 1.0}`. Then a `λ` sweep {0, 0.25, 0.5, 1, 2} **at inference only**. Final picks are Gokul's decision | Chosen values in `configs/evidence/best.yaml`. Sweep curve saved for §5.2. `λ` frozen | M3 |
-| G4 | Write **all** ablation configs (R4–R7, R6b) with identical settings. Run the full model, 3 seeds (R4), and compute R7 (`λ = 0`) from the R4 checkpoints | Configs merged **before M3** (others are waiting on them). 3 run JSONs each for R4 and R7 | M3 |
+| G4 | Write **all** ablation configs (R4–R7, R6b) with identical settings. Run the full model, 3 seeds (R4), and compute R7 (`λ = 0`) from the R4 checkpoints. After training, run the mined-negative export once on the finished model for J3's 100 train questions | Configs merged **before M3** (others are waiting on them). 3 run JSONs each for R4 and R7 | M3 |
 | G5 | Ablation table and analysis: full vs. −ranking (R3) vs. −negatives (R5) vs. random (R6) vs. lexical (R6b) vs. −evidence in decoding (R7). Mean ± std, Recall@1/MRR from J6, significance stars from Xin Hui's script | Table drafted for §5.2 with a 3–4 sentence interpretation, including whether model-mined beats lexical | M4 |
 
 ## 4. Dependencies
@@ -68,7 +68,7 @@ G1 and G2 are on the critical path. You also write the ablation configs for **ev
 | G5 | `significance.py`, `make_tables.py` | Xin Hui (X3, X2) | No |
 
 ### Who is waiting on you
-- **G1** → Jun Yip J3 (mined-negative dump) and every evidence run: R5 (Xin Hui), R6 (Jun Yip), R6b (Clemen).
+- **G1** → Jun Yip J3 (the export tool; the export itself runs once after G3/R4 training) and every evidence run: R5 (Xin Hui), R6 (Jun Yip), R6b (Clemen).
 - **G2 (C8 rankings)** → Clemen C3 (R9b) and C8 (error analysis), Jun Yip J5/J6, Xin Hui (C8 consumer).
 - **G2 (`evidence_decoder.py`)** → Clemen C3 (`k = all` must equal joint decoding).
 - **G3 (`λ` frozen)** → Clemen C3 (joint score inside the top-k), and your own G4.
@@ -166,7 +166,7 @@ Full text is in TEAM_TASKS.md §2–§4 and §11. Short version:
 - **Video:** segment 4, 3:00. Ranker head, model-mined negatives, joint loss and decoding, ablations.
 
 ## 8. Open questions (raise these; don't resolve them yourself)
-- **G1 dump vs. J3 audit mismatch.** G1 dumps mined negatives for "200 **val** questions", but J3 audits "100 random **train** questions". Ask Damian (plan owner) and Jun Yip which set the dump should cover, before writing the dump code.
+- ~~**G1 dump vs. J3 audit mismatch.**~~ Resolved 3 Nov (Gokul with Damian and Jun Yip): the export and the audit use the same 100 train questions. See §9.
 - **Negative warm-up.** Using `random` negatives for the first 10% of steps, then switching to `model`, is an option Gokul decides on val in G3 (TEAM_TASKS §10). The agent can run the comparison only with Gokul's go-ahead.
 - **High false-negative rate from J3.** If it's high, the fix (margin warm-up, or mining from epoch 2) is a decision for Gokul and the team, not the agent.
 
@@ -175,8 +175,20 @@ Status key: ☐ not started · 🟡 in progress / partial (mocked) · 🚧 block
 
 | WP | Status | Notes / PR / blocker |
 |---|---|---|
-| G1 | ☐ | |
-| G2 | ☐ | |
-| G3 | ☐ | |
-| G4 (configs, R4, R7) | ☐ | |
-| G5 | ☐ | |
+| G1 | 🟡 in review | [PR #44](https://github.com/damiancxliew/CS4248_Project/pull/44), targets `main` (3 Nov), not merged. Uses #52's `prepare_features(…, split, data_file)` to load `<evidence_dir>/evidence_{split}.jsonl` and apply J2's `add_sentence_fields`. Adds the mined-negative dump (`python -m qa.models.evidence_model dump-negatives`). `pytest -q`: 192 passed. **Real-data check (3 Nov; `python tests/test_evidence_model.py --overfit-real`)**: real C1/C2/C3/C4 for 200 train questions and real `deberta-v3-base`, MPS fp32. `model` mode over 8 epochs: loss 7.22 → 0.50, F1 on the same questions 13.9 → 96.5. `lexical` / `random` / `none` each train 1 epoch without errors. Test export on that checkpoint, 100 train questions: 99 have a mined negative, 0 invalid; it equals the lexical negative on 54 and the random one on 32. G1 is done as is (no 200-question export needed). Left: plan wording with Damian (below), merge |
+| G2 | 🟡 in review | [PR #51](https://github.com/damiancxliew/CS4248_Project/pull/51), targets `main` (3 Nov), not merged. C8 passage ranking (slots via J2's `token_sentences`) + joint decoder + CLI. λ = 0 equals `span_decoder.decode`. Merged with `main`: 184 passed. A real-run check waits on a trained evidence model (G3) |
+| G3 | ☐ | Unblocked: D3 frozen (#53, same as `base.yaml`), data hooks (#52). Runs go on the SoC cluster, submitted by Gokul. Next: grid configs, Slurm job, λ sweep |
+| G4 (configs, R4, R7) | ☐ | 🚧 G3 values (α, β, m, λ). After training: run the export once on the finished model for J3's 100 train questions (Jun Yip waits on it) |
+| G5 | ☐ | 🚧 all runs |
+
+**Resolved:**
+- `prepare_features` gets the split: Damian's #52, merged 2 Nov.
+- Slot-to-passage mapping: no C4 change. G2 reuses `token_sentences`; Jun Yip confirmed window-local slots in #47.
+- J3 question set (3 Nov, Gokul with Damian and Jun Yip): use the same 100 train questions for the export and the audit, for a fair comparison. No 200-question val export. During training, `model` mode picks its tricky wrong sentences on its own; nobody picks them by hand. After training (G3/R4), the export runs once on the finished model for 100 train questions, and Jun Yip judges those picks alongside his lexical and random ones (J3). The export saves its ids (seed 2026); Jun Yip can pass his own list with `--qids`.
+- Damian's #43 questions: agreed. Epoch selection uses span-only decoding (λ = 0), and `sent_idx` is the sentence holding the span's start.
+
+**To raise (need an answer from the named person):**
+- Damian (plan wording, the last G1 item):
+  - TEAM_TASKS §5 G1 row: replace "dumps the mined negatives for 200 val questions" with the 3 Nov agreement (export once after training, on J3's 100 train questions).
+  - TEAM_TASKS §2.3 step 6: `L_neg` is also skipped when the gold sentence isn't in the window (`sent_label = -100`), since there is no `s_gold`.
+- Clemen (PR #40): the sequential decoder scores by start+end only, so `k = all` can't equal joint decoding when λ > 0. #51 asks him to rank by `score`.
