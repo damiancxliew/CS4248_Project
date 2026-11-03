@@ -4,19 +4,24 @@
 # are in configs/deberta_span/d3_slurm.sbatch. Submit from the repository root:
 #
 #   mkdir -p logs
-#   sbatch configs/evidence/g3_slurm.sbatch                              # all 12 runs
-#   sbatch --array=4,6 configs/evidence/g3_slurm.sbatch                  # only some indices
-#   sbatch --gpus=h100-96 --array=6-11 configs/evidence/g3_slurm.sbatch  # another GPU type
+#   sbatch configs/evidence/g3_slurm.sbatch                    # all 12 runs, at most 3 at a time
+#   sbatch --array=0 configs/evidence/g3_slurm.sbatch          # one run (a first check)
+#   sbatch --array=1-11%3 configs/evidence/g3_slurm.sbatch     # the rest; keep the %3 when overriding
 #
-# Before the first submit, on the login node: the splits and both C3 files must exist
-# (bash configs/evidence/g3_grid.sh run <i> names the command for any missing one), and the
-# pretrained checkpoint must be in the Hugging Face cache (see d3_slurm.sbatch).
+# Keep every task on h100-47: the same setting moves about 0.2 F1 across GPU types, the pick's
+# tie margin. At most 3 tasks at a time also caps the disk at about three models (0.74 GB each),
+# since each task deletes its model once scored (g3_grid.sh).
+#
+# Before the first submit: the splits and both C3 files must exist (bash configs/evidence/g3_grid.sh
+# run <i> names the command for any missing one), and the pretrained checkpoint must be in the
+# Hugging Face cache (see d3_slurm.sbatch). Install and download on a compute node
+# (srun --gpus=1 --time=00:30:00 --pty bash): the login node can't load torch's CUDA libraries.
 # Each task trains outputs/g3_<setting>_s42/, predicts val, and writes 5 records (one per lambda)
 # to results/runs/g3_grid/. Arguments after the script name are passed to train.py as overrides.
 # Run from a git checkout so each record's git_sha is filled.
 
 #SBATCH --job-name=g3-grid
-#SBATCH --array=0-11
+#SBATCH --array=0-11%3
 #SBATCH --gpus=h100-47
 #SBATCH --exclude=xgpj0
 #SBATCH --time=03:00:00

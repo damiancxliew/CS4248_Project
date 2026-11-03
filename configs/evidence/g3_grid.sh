@@ -14,6 +14,9 @@
 # On the SoC cluster: configs/evidence/g3_slurm.sbatch (one array task per index).
 # Extra train.py overrides can be passed after the index, e.g. --set train.precision=fp16 on a T4.
 # OUTPUT_DIR (default outputs) and RESULTS_DIR (default results/runs/g3_grid) move the outputs.
+# A run's model (outputs/<run>/best/, about 0.74 GB) is deleted once its 5 records are written:
+# nothing later loads a G3 model (R4 retrains from best.yaml), and val.logits.npz stays, so any
+# lambda can still be decoded. KEEP_CHECKPOINT=1 keeps it.
 #
 # Pick rule, fixed before the search: the highest val F1 over every (run, lambda). Runs whose best
 # F1 is within 0.2 of it count as tied (the same D3 setting gave 88.49 and 88.32 on two GPUs), and
@@ -27,6 +30,7 @@ python_bin="${QA_PYTHON:-$( [[ -x .venv/bin/python ]] && echo .venv/bin/python |
 export PYTHONPATH="$repo_root/src${PYTHONPATH:+:$PYTHONPATH}"
 output_dir="${OUTPUT_DIR:-outputs}"
 results_dir="${RESULTS_DIR:-results/runs/g3_grid}"
+keep_checkpoint="${KEEP_CHECKPOINT:-0}"
 lambdas=(0 0.25 0.5 1 2)
 
 grid=()
@@ -106,6 +110,10 @@ record = run_eval(val_file, run_dir / f"val.joint_lam{lam}.predictions.json", me
 print(f"[{record['run_id']}] val EM {record['exact']:.2f} F1 {record['f1']:.2f}")
 EOF
     done
+    if [[ "$keep_checkpoint" != 1 ]]; then
+        rm -rf "$run_dir/best"  # scored, so the model is no longer needed (see the header)
+        echo "[$name] deleted $run_dir/best (KEEP_CHECKPOINT=1 keeps it)"
+    fi
 }
 
 case "${1:-}" in
@@ -194,7 +202,7 @@ if len(rows) < 12 or incomplete:
 EOF
         ;;
     *)
-        sed -n '2,21p' "$0" | sed 's/^# \{0,1\}//'
+        sed -n '2,24p' "$0" | sed 's/^# \{0,1\}//'
         exit 2
         ;;
 esac
