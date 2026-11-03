@@ -11,6 +11,7 @@ data/raw/*
 # --- Training outputs and model weights (share via Drive / private HF Hub) ---
 outputs/
 checkpoints/
+logs/
 # Root-level only: results/runs/ holds the committed C7 run records.
 /runs/
 wandb/

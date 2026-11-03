@@ -1,11 +1,8 @@
 # R3: DeBERTa-v3-base span-only (= the full model without the ranking objective). Owner: Damian.
 #
 # learning_rate / epochs / warmup_ratio below are base.yaml placeholders until the D3 search.
-# D3 grid, seed 42, val only (12 runs), one per combination:
-#   python -m qa.train --config configs/deberta_span/span_only.yaml --seed 42 \
-#     --set run_id=d3_lr2e-5_ep3_wu06 \
-#     --set train.learning_rate=2e-5 --set train.epochs=3 --set train.warmup_ratio=0.06
-#   learning_rate {1e-5, 2e-5, 3e-5} x epochs {2, 3} x warmup_ratio {0.06, 0.10}
+# D3 grid, seed 42, val only: learning_rate {1e-5, 2e-5, 3e-5} x epochs {2, 3} x warmup_ratio {0.06, 0.10}
+# (12 runs). Run them with configs/deberta_span/d3_grid.sh (list / run <i|all> / summary).
 # Damian picks the setting; it goes in configs/deberta_span/best.yaml and is frozen for every
 # DeBERTa variant (R3-R7, R6b). R3 then runs seeds 13, 42, 87 with --record.
 
