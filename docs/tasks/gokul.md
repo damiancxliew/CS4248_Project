@@ -175,15 +175,18 @@ Status key: ☐ not started · 🟡 in progress / partial (mocked) · 🚧 block
 
 | WP | Status | Notes / PR / blocker |
 |---|---|---|
-| G1 | 🟡 partial (mocked) | `src/qa/models/evidence_model.py` + `tests/test_evidence_model.py` [PR #44](https://github.com/damiancxliew/CS4248_Project/pull/44) on `gokul/evidence-model`, stacked on PR #43 (itself stacked on #41); rebase onto `main` once those merge. Subclasses `SpanModel`; all four `neg_mode`s tested on mock C2/C4 windows; gradients reach both heads; loss falls on a 200-window synthetic overfit. Also trains and predicts through `train.py` / `predict.py` via `model.class` alone (scratch check with mock C4, not committed). `pytest -q`: 44 passed. Not done: overfit on real C2 features, `prepare_features` (raises until unblocked), mined-negative dump (§8). 🚧 Damian (D1/D2: PR #43 open; `prepare_features` gets no split), Jun Yip (J2: C4 not started), Xin Hui (X9: C2 not started) |
-| G2 | ☐ | 🚧 Damian (D2, `span_decoder.py` in PR #43, for the λ = 0 test). `sentence_ranking.py` can start on mocks, but `logits.npz` lacks the window-to-passage sentence mapping (to raise with Damian / Jun Yip) |
-| G3 | ☐ | 🚧 Damian (D3), Xin Hui (X8, X9), Jun Yip (J1, J2), GPU |
-| G4 (configs, R4, R7) | ☐ | 🚧 G3, Damian (D3) |
+| G1 | 🟡 in review | [PR #44](https://github.com/damiancxliew/CS4248_Project/pull/44), targets `main` (3 Nov), not merged. Uses #52's `prepare_features(…, split, data_file)` to load `<evidence_dir>/evidence_{split}.jsonl` and apply J2's `add_sentence_fields`. Adds the mined-negative dump (`python -m qa.models.evidence_model dump-negatives`). `pytest -q`: 192 passed. **Real-data check (3 Nov; `python tests/test_evidence_model.py --overfit-real`)**: real C1/C2/C3/C4 for 200 train questions and real `deberta-v3-base`, MPS fp32. `model` mode over 8 epochs: loss 7.22 → 0.50, F1 on the same questions 13.9 → 96.5. `lexical` / `random` / `none` each train 1 epoch without errors. Dump on 100 train questions: 99 have a mined negative, 0 invalid; it equals the lexical negative on 54 and the random one on 32. Left: J3 question set confirmed (below), merge |
+| G2 | 🟡 in review | [PR #51](https://github.com/damiancxliew/CS4248_Project/pull/51), targets `main` (3 Nov), not merged. C8 passage ranking (slots via J2's `token_sentences`) + joint decoder + CLI. λ = 0 equals `span_decoder.decode`. Merged with `main`: 184 passed. A real-run check waits on a trained evidence model (G3) |
+| G3 | ☐ | Unblocked: D3 frozen (#53, same as `base.yaml`), data hooks (#52). Runs go on the SoC cluster, submitted by Gokul. Next: grid configs, Slurm job, λ sweep |
+| G4 (configs, R4, R7) | ☐ | 🚧 G3 values (α, β, m, λ) |
 | G5 | ☐ | 🚧 all runs |
 
-**To raise (26 Oct; listed in PR #44; need an answer from the named person):**
-- Damian (PR #43): `prepare_features(features, model_cfg)` is not told the split or data file, so the evidence model can't pick `evidence_{split}.jsonl` for `add_sentence_fields`. Pass `data_file` (or the split) through `build_split`.
-- Damian + Jun Yip: `predict.py` saves `sent_logits` / `sent_mask` but not which passage sentence each window slot is, which C8 needs. Either save it (e.g. add it to `EXTRA_OUTPUTS`) or agree that G2 rebuilds it from the saved offsets + C3. Also pin C4: G1 assumes `sent_ids` are **window-local** slot indices (0..S-1, matching `sent_label` / `neg_cand_mask`).
-- Damian (reply to his PR #43 questions; Gokul decided 26 Oct): agree with both. Epoch selection uses span-only decoding (λ = 0), and `sent_idx` is the sentence holding the span's start. G2's joint decoder uses the same rule.
-- Clemen (PR #40): sequential decoder scores by start+end only, so `k = all` can't equal joint decoding when λ > 0; it also only sees the global top-20 n-best and crashes on `sent_idx = None`.
-- Damian (plan wording, TEAM_TASKS §2.3 step 6; Gokul decided 26 Oct): `L_neg` is also skipped when the gold sentence isn't in the window (`sent_label = -100`), since there is no `s_gold`. The plan only says "skipped when no negative is in the window"; ask Damian to add this.
+**Resolved:**
+- `prepare_features` gets the split: Damian's #52, merged 2 Nov.
+- Slot-to-passage mapping: no C4 change. G2 reuses `token_sentences`; Jun Yip confirmed window-local slots in #47.
+- Damian's #43 questions: agreed. Epoch selection uses span-only decoding (λ = 0), and `sent_idx` is the sentence holding the span's start.
+
+**To raise (need an answer from the named person):**
+- Damian + Jun Yip: the J3 dump covers **J3's 100 train questions** (Gokul's proposal, 3 Nov). The CLI samples 100 with seed 2026 and saves their ids; Jun Yip can pass his own list with `--qids`.
+- Damian (plan wording, TEAM_TASKS §2.3 step 6): `L_neg` is also skipped when the gold sentence isn't in the window (`sent_label = -100`), since there is no `s_gold`.
+- Clemen (PR #40): the sequential decoder scores by start+end only, so `k = all` can't equal joint decoding when λ > 0. #51 asks him to rank by `score`.
