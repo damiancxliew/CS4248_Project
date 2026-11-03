@@ -44,20 +44,26 @@ def import_object(path):
     return getattr(importlib.import_module(module), name)
 
 
-def build_split(cfg, data_file, tokenizer, model_cls):
-    """Examples and features for one SQuAD-format file, through the configured C1/C2 code."""
+def build_split(cfg, data_file, tokenizer, model_cls, split=None):
+    """Examples and features for one SQuAD-format file, through the configured C1/C2 code.
+
+    ``split`` (train, val, test, or a --split name such as addsent) and ``data_file`` reach
+    ``model_cls.prepare_features``, so a model can load per-split extras such as the C3
+    ``evidence_{split}.jsonl``.
+    """
     data = cfg["data"]
     for key in ("examples_fn", "features_fn"):
         if not data.get(key):
             raise ValueError(
                 f"data.{key} is not set. It must point at squad_io.py / features.py "
-                "(Xin Hui, X8/X9) once they are merged."
+                "(Xin Hui, X8/X9); see configs/base.yaml."
             )
     examples = import_object(data["examples_fn"])(data_file)
     features = import_object(data["features_fn"])(
         examples, tokenizer, data["max_seq_len"], data["doc_stride"]
     )
-    return examples, model_cls.prepare_features(features, cfg["model"])
+    return examples, model_cls.prepare_features(features, cfg["model"], split=split,
+                                                data_file=data_file)
 
 
 def collate(rows, keys, pad_values):
@@ -194,7 +200,7 @@ def predict(checkpoint, split, data_file=None, out_dir=None, evidence_file=None,
     device = resolve_device(device)
     model, tokenizer, cfg = load_checkpoint(checkpoint, device)
     data_file = data_file or cfg["data"][f"{split}_file"]
-    examples, features = build_split(cfg, data_file, tokenizer, type(model))
+    examples, features = build_split(cfg, data_file, tokenizer, type(model), split)
     outputs = run_inference(
         model, features, batch_size or cfg["train"]["eval_batch_size"], device,
         amp_precision(device, cfg["train"]["precision"]),
