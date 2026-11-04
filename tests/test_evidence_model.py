@@ -2,20 +2,25 @@
 
 Loss and pooling tests use synthetic windows (token ids, no tokenizer). The prepare_features,
 train/predict and dump tests run J2's real ``add_sentence_fields`` on Damian's mock windows with
-mock C3 files. Offline tiny encoders only. The real-data check is opt-in (not run by pytest):
+mock C3 files. Offline tiny encoders only. The G3 tests cover configs/evidence/ (the grid config,
+its 12 runs and the pick rule). The real-data check is opt-in (not run by pytest):
 
   PYTHONPATH=src python tests/test_evidence_model.py --overfit-real
 """
 import argparse
 import json
+import os
 import random
 import re
+import subprocess
+import sys
 import time
 from pathlib import Path
 
 import numpy as np
 import pytest
 import torch
+import yaml
 from datasets import Dataset
 from transformers import AutoTokenizer, BertConfig
 
@@ -41,7 +46,7 @@ from qa.models.evidence_model import (
 )
 from qa.models.span_model import span_loss
 from qa.predict import batches, import_object, predict, read_evidence, run_inference
-from qa.train import train
+from qa.train import ROOT, load_config, train
 
 HPARAMS = {"alpha": 0.3, "beta": 1.0, "margin": 0.5}
 CLS, SEP, KEY = 2, 3, 7  # KEY marks the answer token of a synthetic window
@@ -309,6 +314,75 @@ def test_config_and_data_errors_name_the_problem(tmp_path):
     del batch["static_neg_label"]
     with pytest.raises(ValueError, match="static_neg_label"):
         model(**batch)
+
+
+# --- G3 grid (configs/evidence/) ---------------------------------------------------------------
+
+G3_GRID = ROOT / "configs/evidence/g3_grid.sh"
+
+
+def test_g3_config_is_the_evidence_model_on_the_frozen_d3_setting():
+    cfg = load_config(ROOT / "configs/evidence/evidence.yaml")
+    frozen = yaml.safe_load((ROOT / "configs/deberta_span/best.yaml").read_text())["train"]
+    assert cfg["model"]["class"] == "qa.models.evidence_model:EvidenceModel"
+    assert cfg["model"]["neg_mode"] == "model"
+    assert {key: cfg["train"][key] for key in frozen} == frozen
+
+
+def test_g3_grid_lists_the_twelve_settings():
+    listing = subprocess.run(["bash", G3_GRID, "list"], capture_output=True, text=True, check=True).stdout
+    run_ids = [line.split()[1] for line in listing.splitlines()]
+    assert len(run_ids) == 12
+    assert set(run_ids) == {f"g3_a{a}_b{b}_m{m}_s42" for a in ("0.1", "0.3", "1.0")
+                            for b in ("0.5", "1.0") for m in ("0.5", "1.0")}
+
+
+def test_g3_best_is_a_grid_point_tied_with_the_best_record():
+    # The Recall@1 tie-break needs the cluster's rankings, so only the F1 side of the rule is checked.
+    best = yaml.safe_load((ROOT / "configs/evidence/best.yaml").read_text())
+    alpha, beta, margin = (best["model"][key] for key in ("alpha", "beta", "margin"))
+    lam = best["decode"]["lam"]
+    assert (alpha, beta, margin, lam) in {(a, b, m, l) for a in (0.1, 0.3, 1.0) for b in (0.5, 1.0)
+                                          for m in (0.5, 1.0) for l in (0, 0.25, 0.5, 1, 2)}
+    records = {path.name: json.loads(path.read_text())
+               for path in (ROOT / "results/runs/g3_grid").glob("g3_*_lam*.json")}
+    assert len(records) == 60
+    assert len({record["gpu"] for record in records.values()}) == 1
+    pick = records[f"g3_a{alpha}_b{beta}_m{margin}_s42_lam{lam:g}.json"]
+    assert pick["f1"] >= max(record["f1"] for record in records.values()) - 0.2
+
+
+def test_g3_summary_breaks_near_ties_by_recall_at_1(tmp_path):
+    # Two questions whose gold sentence is 0. Run A has the best F1; B is within 0.2 F1 and ranks
+    # better, so B wins, at the smaller of its two equal-F1 lambdas; C ranks as well as B but is
+    # 0.3 F1 behind, so it doesn't count as tied.
+    evidence_dir, outputs, records = tmp_path / "c3", tmp_path / "outputs", tmp_path / "records"
+    evidence_dir.mkdir()
+    (evidence_dir / "evidence_val.jsonl").write_text(
+        "".join(json.dumps({"id": qid, "gold_sent": 0}) + "\n" for qid in ("q1", "q2")))
+    runs = {  # name: (alpha, beta, margin, F1 per lambda, top sentence for q1 and q2)
+        "g3_a0.1_b0.5_m0.5_s42": (0.1, 0.5, 0.5, {0: 88.2, 0.25: 88.3, 0.5: 88.4, 1: 88.1, 2: 87.9}, (0, 1)),
+        "g3_a0.3_b1.0_m0.5_s42": (0.3, 1.0, 0.5, {0: 88.0, 0.25: 88.1, 0.5: 88.2, 1: 88.3, 2: 88.3}, (0, 0)),
+        "g3_a1.0_b1.0_m1.0_s42": (1.0, 1.0, 1.0, {0: 87.9, 0.25: 88.0, 0.5: 88.1, 1: 88.05, 2: 88.0}, (0, 0)),
+    }
+    records.mkdir()
+    for name, (alpha, beta, margin, curve, top) in runs.items():
+        (outputs / name).mkdir(parents=True)
+        (outputs / name / "val.sent_rank.json").write_text(json.dumps(
+            {qid: [[first, -0.1], [1 - first, -2.0]] for qid, first in zip(("q1", "q2"), top)}))
+        for lam, f1 in curve.items():
+            config = {"model": {"alpha": alpha, "beta": beta, "margin": margin,
+                                "evidence_dir": str(evidence_dir)}, "decode": {"lam": float(lam)}}
+            (records / f"{name}_lam{lam:g}.json").write_text(json.dumps(
+                {"run_id": f"{name}_lam{lam:g}", "f1": f1, "exact": f1 - 12, "train_gpu_hours": 0.3,
+                 "config": config}))
+    env = {**os.environ, "QA_PYTHON": sys.executable, "OUTPUT_DIR": str(outputs), "RESULTS_DIR": str(records)}
+    summary = subprocess.run(["bash", G3_GRID, "summary"], capture_output=True, text=True, check=True,
+                             env=env).stdout
+    assert "2 run(s) within 0.2 F1 of the best (88.40)" in summary
+    assert "Pick: alpha 0.3, beta 1, margin 0.5, lambda 1 -> val F1 88.30" in summary
+    assert "Recall@1 1.000 (g3_a0.3_b1.0_m0.5_s42)" in summary
+    assert "3/12 runs finished" in summary and "Not final" in summary
 
 
 def overfit_real(n_questions=200, epochs=8, seed=2026):
