@@ -1,0 +1,26 @@
+# R7: -evidence in decoding. R4's checkpoints decoded with lambda = 0 (span scores only), so the
+# trained ranker no longer affects the answer. No training: run_ablation.sh re-decodes R4's saved
+# val logits for the same seed. Runner: Gokul (G4), in the same Slurm task as R4:
+#
+#   sbatch configs/ablations/ablation_slurm.sbatch configs/ablations/r4_full.yaml \
+#       configs/ablations/r7_no_evidence_decoding.yaml
+#
+# Identical to r4_full.yaml except run_id, variant and decode.lam; the record keeps R4's training
+# fields (train_gpu_hours, git_sha), since it is the same model.
+
+run_id: r7_deberta_evidence
+system: deberta_evidence
+variant: no_evidence_decoding
+reuses: r4_deberta_evidence      # decode this run's saved logits instead of training
+
+model:
+  class: qa.models.evidence_model:EvidenceModel
+  encoder: microsoft/deberta-v3-base
+  neg_mode: model
+  alpha: 0.3
+  beta: 0.5
+  margin: 1.0
+  evidence_dir: data/processed   # C3 evidence_{train,val}.jsonl (Jun Yip, J1)
+
+decode:
+  lam: 0.0                       # span-only decoding; equals the span decoder (G2)

@@ -1,0 +1,23 @@
+# R6b: lexical negatives (the original proposal). R4 with a fixed negative, the candidate sentence
+# with the highest BM25 score against the question (C3 lex_neg), instead of the model-mined one.
+# Runner: Clemen (C5). Seeds 13, 42, 87 on h100-47:
+#
+#   sbatch configs/ablations/ablation_slurm.sbatch configs/ablations/r6b_lexical_negatives.yaml
+#
+# Identical to r4_full.yaml except run_id, variant and model.neg_mode.
+
+run_id: r6b_deberta_evidence
+system: deberta_evidence
+variant: lexical_negatives
+
+model:
+  class: qa.models.evidence_model:EvidenceModel
+  encoder: microsoft/deberta-v3-base
+  neg_mode: lexical
+  alpha: 0.3
+  beta: 0.5
+  margin: 1.0
+  evidence_dir: data/processed   # C3 evidence_{train,val}.jsonl (Jun Yip, J1)
+
+decode:
+  lam: 0.25                      # joint decoding weight; the record scores val at this lambda
