@@ -337,6 +337,21 @@ def test_g3_grid_lists_the_twelve_settings():
                             for b in ("0.5", "1.0") for m in ("0.5", "1.0")}
 
 
+def test_g3_best_is_a_grid_point_tied_with_the_best_record():
+    # The Recall@1 tie-break needs the cluster's rankings, so only the F1 side of the rule is checked.
+    best = yaml.safe_load((ROOT / "configs/evidence/best.yaml").read_text())
+    alpha, beta, margin = (best["model"][key] for key in ("alpha", "beta", "margin"))
+    lam = best["decode"]["lam"]
+    assert (alpha, beta, margin, lam) in {(a, b, m, l) for a in (0.1, 0.3, 1.0) for b in (0.5, 1.0)
+                                          for m in (0.5, 1.0) for l in (0, 0.25, 0.5, 1, 2)}
+    records = {path.name: json.loads(path.read_text())
+               for path in (ROOT / "results/runs/g3_grid").glob("g3_*_lam*.json")}
+    assert len(records) == 60
+    assert len({record["gpu"] for record in records.values()}) == 1
+    pick = records[f"g3_a{alpha}_b{beta}_m{margin}_s42_lam{lam:g}.json"]
+    assert pick["f1"] >= max(record["f1"] for record in records.values()) - 0.2
+
+
 def test_g3_summary_breaks_near_ties_by_recall_at_1(tmp_path):
     # Two questions whose gold sentence is 0. Run A has the best F1; B is within 0.2 F1 and ranks
     # better, so B wins, at the smaller of its two equal-F1 lambdas; C ranks as well as B but is

@@ -1,0 +1,71 @@
+{
+  "run_id": "g3_a0.3_b1.0_m1.0_s42_lam0.25",
+  "system": "deberta_evidence",
+  "variant": "model_mined",
+  "seed": 42,
+  "split": "val",
+  "exact": 75.99571734475374,
+  "f1": 88.20071610721428,
+  "recall_at_1": null,
+  "recall_at_3": null,
+  "mrr": null,
+  "n": 9340,
+  "params_M": 183.834,
+  "train_gpu_hours": 0.3371,
+  "gpu": "NVIDIA H100 NVL MIG 3g.47gb",
+  "infer_qps": null,
+  "git_sha": "1e0bad9815b52fc85d0f23a07a6b5d0438c5bb72-dirty",
+  "config": {
+    "run_id": "g3_a0.3_b1.0_m1.0",
+    "system": "deberta_evidence",
+    "variant": "model_mined",
+    "seed": 42,
+    "seeds": [
+      13,
+      42,
+      87
+    ],
+    "device": "auto",
+    "output_dir": "outputs",
+    "model": {
+      "class": "qa.models.evidence_model:EvidenceModel",
+      "encoder": "microsoft/deberta-v3-base",
+      "tokenizer": null,
+      "neg_mode": "model",
+      "alpha": 0.3,
+      "beta": 1.0,
+      "margin": 1.0,
+      "evidence_dir": "data/processed"
+    },
+    "data": {
+      "train_file": "data/processed/train.json",
+      "val_file": "data/processed/val.json",
+      "test_file": "data/raw/dev-v1.1.json",
+      "examples_fn": "qa.data.squad_io:load_examples",
+      "features_fn": "qa.data.features:build_features",
+      "max_seq_len": 384,
+      "doc_stride": 128
+    },
+    "train": {
+      "learning_rate": 3e-05,
+      "epochs": 2,
+      "per_device_batch_size": 16,
+      "grad_accum_steps": 2,
+      "weight_decay": 0.01,
+      "warmup_ratio": 0.1,
+      "max_grad_norm": 1.0,
+      "precision": "bf16",
+      "eval_batch_size": 64,
+      "log_every": 50
+    },
+    "decode": {
+      "n_best": 20,
+      "max_answer_len": 30,
+      "lam": 0.25
+    },
+    "wandb": {
+      "enabled": false,
+      "project": "cs4248-g14"
+    }
+  }
+}

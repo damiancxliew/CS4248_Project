@@ -1,0 +1,19 @@
+# G3 result: evidence-model loss weights and decoding weight, frozen for R4-R7 and R6b. Owner: Gokul.
+#
+# Chosen by the rule fixed before the search (3 Nov): highest val F1 over the 12-run grid x 5 lambdas,
+# seed 42, D3 hyper-parameters, neg_mode = model (configs/evidence/g3_grid.sh summary; records in
+# results/runs/g3_grid/, all on h100-47 = H100 NVL MIG 3g.47gb). Runs within 0.2 F1 of the best count
+# as tied and the highest sentence Recall@1 wins; the best-F1 run also leads the six tied runs on it.
+#   alpha 0.3, beta 0.5, margin 1.0, lambda 0.25 -> val F1 88.40 / EM 76.38, Recall@1 0.965
+# All 12 runs lie within 0.34 F1, about the seed and GPU spread (R3 seeds: 88.32-88.48), so the top
+# settings are close to interchangeable; beta 0.5 fills the top four. Lambda barely moves F1: each
+# run's best lambda gains at most 0.04 over lambda 0, and lambda 2 is below lambda 0 in 11 of 12.
+# Span-only on the same seed and GPU (R3 s42): val F1 88.32 / EM 76.26.
+# The records' git_sha is 1e0bad9-dirty: only results/tables/data_stats.csv (rewritten by
+# squad_io prepare) differed in the cluster checkout.
+model:
+  alpha: 0.3
+  beta: 0.5
+  margin: 1.0
+decode:
+  lam: 0.25
