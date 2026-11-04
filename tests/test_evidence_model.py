@@ -3,7 +3,8 @@
 Loss and pooling tests use synthetic windows (token ids, no tokenizer). The prepare_features,
 train/predict and dump tests run J2's real ``add_sentence_fields`` on Damian's mock windows with
 mock C3 files. Offline tiny encoders only. The G3 tests cover configs/evidence/ (the grid config,
-its 12 runs and the pick rule). The real-data check is opt-in (not run by pytest):
+its 12 runs and the pick rule); the G4 tests cover configs/ablations/ (each row differs from R4
+only in what it ablates; R7 re-decodes R4). The real-data check is opt-in (not run by pytest):
 
   PYTHONPATH=src python tests/test_evidence_model.py --overfit-real
 """
@@ -383,6 +384,74 @@ def test_g3_summary_breaks_near_ties_by_recall_at_1(tmp_path):
     assert "Pick: alpha 0.3, beta 1, margin 0.5, lambda 1 -> val F1 88.30" in summary
     assert "Recall@1 1.000 (g3_a0.3_b1.0_m0.5_s42)" in summary
     assert "3/12 runs finished" in summary and "Not final" in summary
+
+
+# --- G4 ablation configs (configs/ablations/) --------------------------------------------------
+
+ABLATIONS = ROOT / "configs/ablations"
+ABLATION_RUNNER = ABLATIONS / "run_ablation.sh"
+ABLATED = {  # what each row changes; every other resolved key must equal R4's
+    "r4_full.yaml": {},
+    "r5_no_negatives.yaml": {"model.neg_mode": "none", "model.beta": 0.0},
+    "r6_random_negatives.yaml": {"model.neg_mode": "random"},
+    "r6b_lexical_negatives.yaml": {"model.neg_mode": "lexical"},
+    "r7_no_evidence_decoding.yaml": {"decode.lam": 0.0, "reuses": "r4_deberta_evidence"},
+}
+
+
+def _flatten(cfg, prefix=""):
+    flat = {}
+    for key, value in cfg.items():
+        if isinstance(value, dict):
+            flat.update(_flatten(value, f"{prefix}{key}."))
+        else:
+            flat[f"{prefix}{key}"] = value
+    return flat
+
+
+def test_g4_ablation_configs_differ_from_r4_only_in_what_they_ablate():
+    assert sorted(path.name for path in ABLATIONS.glob("*.yaml")) == sorted(ABLATED)
+    configs = {name: _flatten(load_config(ABLATIONS / name)) for name in ABLATED}
+    r4 = configs["r4_full.yaml"]
+    picks = yaml.safe_load((ROOT / "configs/evidence/best.yaml").read_text())
+    frozen = yaml.safe_load((ROOT / "configs/deberta_span/best.yaml").read_text())["train"]
+    assert r4["model.class"] == "qa.models.evidence_model:EvidenceModel"
+    assert r4["model.neg_mode"] == "model" and r4["run_id"] == "r4_deberta_evidence"
+    assert {key: r4[f"model.{key}"] for key in picks["model"]} == picks["model"]
+    assert r4["decode.lam"] == picks["decode"]["lam"]
+    assert {key: r4[f"train.{key}"] for key in frozen} == frozen
+    for name, changes in ABLATED.items():
+        cfg, own = configs[name], {"run_id", "variant", *changes}
+        assert {key: cfg.get(key) for key in changes} == changes, name
+        assert ({key: value for key, value in cfg.items() if key not in own}
+                == {key: value for key, value in r4.items() if key not in own}), name
+    assert len({cfg["run_id"] for cfg in configs.values()}) == 5
+    assert len({cfg["variant"] for cfg in configs.values()}) == 5
+
+
+def test_g4_runner_lists_the_configs_and_marks_r7_decode_only():
+    listing = subprocess.run(["bash", ABLATION_RUNNER, "list"], capture_output=True, text=True, check=True,
+                             env={**os.environ, "QA_PYTHON": sys.executable}).stdout
+    rows = {line.split()[0]: line for line in listing.splitlines()[1:]}
+    assert set(rows) == set(ABLATED)
+    assert "decode-only, reuses r4_deberta_evidence" in rows["r7_no_evidence_decoding.yaml"]
+    assert sum("decode-only" in row for row in rows.values()) == 1
+
+
+def test_g4_r7_needs_the_r4_run_it_reuses(tmp_path):
+    env = {**os.environ, "QA_PYTHON": sys.executable, "OUTPUT_DIR": str(tmp_path),
+           "RESULTS_DIR": str(tmp_path / "records")}
+    command = ["bash", ABLATION_RUNNER, "run", ABLATIONS / "r7_no_evidence_decoding.yaml", "42"]
+    missing = subprocess.run(command, capture_output=True, text=True, env=env)
+    assert missing.returncode != 0
+    assert "run the r4_deberta_evidence config for seed 42 first" in missing.stderr
+    source = tmp_path / "r4_deberta_evidence_s42"  # a run trained with other settings
+    source.mkdir()
+    (source / "val.logits.npz").write_bytes(b"")
+    (source / "run.json").write_text(json.dumps({"config": load_config(ABLATIONS / "r6_random_negatives.yaml")}))
+    mismatched = subprocess.run(command, capture_output=True, text=True, env=env)
+    assert mismatched.returncode != 0 and "model.neg_mode = 'random'" in mismatched.stderr
+    assert not (tmp_path / "records").exists()
 
 
 def overfit_real(n_questions=200, epochs=8, seed=2026):

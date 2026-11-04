@@ -1,0 +1,25 @@
+# R4: full model (ours). DeBERTa-v3-base evidence model, model-mined negatives, joint decoding.
+# Runner: Gokul (G4). Seeds 13, 42, 87 on h100-47, each task also derives R7 (no retraining):
+#
+#   sbatch configs/ablations/ablation_slurm.sbatch configs/ablations/r4_full.yaml \
+#       configs/ablations/r7_no_evidence_decoding.yaml
+#
+# The reference row of the ablation table. Every other config in this folder copies this one and
+# changes only what it ablates (tests/test_evidence_model.py checks this). alpha, beta, margin and
+# decode.lam are G3's picks (configs/evidence/best.yaml); D3's train settings are base.yaml's.
+
+run_id: r4_deberta_evidence
+system: deberta_evidence
+variant: model_mined
+
+model:
+  class: qa.models.evidence_model:EvidenceModel
+  encoder: microsoft/deberta-v3-base
+  neg_mode: model
+  alpha: 0.3
+  beta: 0.5
+  margin: 1.0
+  evidence_dir: data/processed   # C3 evidence_{train,val}.jsonl (Jun Yip, J1)
+
+decode:
+  lam: 0.25                      # joint decoding weight; the record scores val at this lambda

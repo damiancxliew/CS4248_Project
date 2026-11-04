@@ -1,0 +1,22 @@
+# R5: -negatives. R4 without the margin term over a negative sentence (beta = 0, neg_mode none);
+# the ranker is still trained with L_rank. Runner: Xin Hui (X5). Seeds 13, 42, 87 on h100-47:
+#
+#   sbatch configs/ablations/ablation_slurm.sbatch configs/ablations/r5_no_negatives.yaml
+#
+# Identical to r4_full.yaml except run_id, variant, model.neg_mode and model.beta.
+
+run_id: r5_deberta_evidence
+system: deberta_evidence
+variant: no_negatives
+
+model:
+  class: qa.models.evidence_model:EvidenceModel
+  encoder: microsoft/deberta-v3-base
+  neg_mode: none
+  alpha: 0.3
+  beta: 0.0
+  margin: 1.0
+  evidence_dir: data/processed   # C3 evidence_{train,val}.jsonl (Jun Yip, J1)
+
+decode:
+  lam: 0.25                      # joint decoding weight; the record scores val at this lambda
