@@ -186,8 +186,18 @@ Status key: ☐ not started · 🟡 in progress / partial (mocked) · 🚧 block
 | X2 | ✅ | [PR #49](https://github.com/damiancxliew/CS4248_Project/pull/49) merged on 2 Nov 2026 at 13:28:45 UTC; fetched main `7e39f79` includes `cec41bf`. Official scoring/C7 export and CSV/LaTeX aggregation; prior 84-test CPU validation and C7 publication/ranking-unit handoffs are recorded below. |
 | X3 | 🟡 | Implemented and published on `xinhui/significance` in [PR #50](https://github.com/damiancxliew/CS4248_Project/pull/50), original commit `3b731af`. Resolved progress-note conflicts with main `7e39f79` after X2 merged; combined CPU suite: 129 passed. Not merged into main. |
 | X10 | ☐ | |
-| X7 | ☐ | |
+| X7 | 🟡 | Paper scaffold on `xinhui/paper-structure`: professor-selected ACL style copied unchanged, main document, section placeholders mapped to §8.1 owners/budgets, bibliography placeholder, and build guide. Final integration still needs all members' drafts and contribution confirmations. Compilation and CPU verification recorded below. |
 | X5 (R5) | ☐ | |
+
+### X7 paper scaffold (8 Nov 2026)
+
+- Xin Hui requested organisation of the professor-selected template cloned into `paper/acl-style-files/`. Created `xinhui/paper-structure` from fetched `origin/main` at `94eb16a`; preserved the reference clone unchanged.
+- Added [main.tex](../../paper/main.tex), an empty source-verification-only [refs.bib](../../paper/refs.bib), and 16 section placeholders mapped to TEAM_TASKS §8.1. Files include owners, page budgets, and drafting prompts; no member's report content, results, or citations were invented. Shared parent headings preserve sections 1–7 and subsections 3.1–5.4.
+- Copied `acl.sty` and `acl_natbib.bst` from upstream commit `d5adc823ff0f80f98c80405ca0ab66c68e684409`; SHA-256 hashes match the clone. Added a [paper guide](../../paper/README.md) covering ownership, compilation, citations, provenance, and the course's stricter 4+1 page limit. All 16 inputs resolve, labels are unique, and editor diagnostics are clear.
+- CPU suite: **206 passed, 4 failed** in 244.71 seconds. All four failures are in Gokul's existing `tests/test_evidence_model.py` G3/G4 shell-runner tests: Bash cannot resolve their Windows absolute script paths (exit 127). No Python, configuration, or test files changed for X7.
+- PDF verification: two pdfLaTeX passes succeeded; the local, untracked `paper/main.pdf` is a one-page A4 scaffold with embedded Type 1 Times-compatible Nimbus Roman fonts and no LaTeX warnings or overfull/underfull boxes. Body size is 11pt in the unchanged ACL layout. Updated the local TeX Live 2025 package manager against its matching archive and installed missing `caption`, `microtype`, and `grfext` packages; omitted the upstream example's optional Inconsolata package. This preview contains placeholders and does not establish final-paper page compliance.
+- X7 remains partial: final integration needs all members' drafts and confirmed contributions, followed by final PDF page/font/overflow checks. X10 literature research is still separate. No commit, push, or PR was requested.
+- Xin Hui subsequently authorised committing and pushing the X7 scaffold on `xinhui/paper-structure`. Publication includes the paper sources, unmodified ACL support files, guide, and these progress notes; the nested reference clone and generated PDF/build files remain local. No PR creation or merge was requested.
 
 ### X1 verification and blocker (25 Oct 2026)
 

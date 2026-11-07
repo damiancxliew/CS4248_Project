@@ -1,0 +1,58 @@
+\documentclass[11pt]{article}
+
+% ACL preprint: visible authors and page numbers while the team drafts.
+% Use [final] for the submission PDF if the course requires no page numbers.
+\usepackage[preprint]{acl}
+\usepackage{times}
+\usepackage{latexsym}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{microtype}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{amsmath}
+
+\graphicspath{{../results/figures/}}
+\title{Evidence-Guided Extractive QA on SQuAD v1.1}
+% Replace the group label with the agreed author names before submission.
+% Do not add student IDs or email addresses to the repository.
+\author{Group G14}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+\input{sections/00_abstract}
+\end{abstract}
+
+\input{sections/01_introduction}
+\input{sections/02_related_work}
+
+\section{Method}
+\label{sec:method}
+\input{sections/03_1_base_span_extractor}
+\input{sections/03_2_evidence_labels}
+\input{sections/03_3_sentence_ranker}
+\input{sections/03_4_sequential_decoding}
+
+\section{Experimental Setup}
+\label{sec:setup}
+\input{sections/04_1_data_splits}
+\input{sections/04_2_training_setup}
+
+\section{Results}
+\label{sec:results}
+\input{sections/05_1_main_results}
+\input{sections/05_2_ablations}
+\input{sections/05_3_joint_vs_sequential}
+\input{sections/05_4_robustness}
+
+\input{sections/06_error_analysis}
+\input{sections/07_conclusion_limitations}
+\input{sections/08_contributions}
+
+% X10: uncomment after adding source-verified entries and citations.
+% acl.sty already selects the acl_natbib bibliography style.
+% \bibliography{refs}
+
+\end{document}
