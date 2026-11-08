@@ -1,7 +1,22 @@
 % Owner: Xin Hui (X10). Budget: 0.35 pages.
 \section{Related Work}
 \label{sec:related-work}
-% TODO: SQuAD models, sentence selection / rank-then-read, evidence
-% supervision, hard-negative mining, and adversarial robustness.
-% Verify citations at their sources; distinguish prior work from our claims.
-\textit{Related work draft pending.}
+Extractive QA progressed from feature-based models on SQuAD
+\citep{rajpurkar2016squad} and BiDAF's bidirectional attention
+\citep{seo2017bidaf} to pretrained readers: BERT, SpanBERT, XLNet,
+RoBERTa, and DeBERTa \citep{devlin2019bert,joshi2020spanbert,
+yang2019xlnet,liu2019roberta,he2021deberta}. We fine-tune
+DeBERTaV3 \citep{he2023debertav3} for span prediction and sentence ranking.
+
+\citet{min2018minimal} select minimal sentence context before reading;
+our sequential decoder instead filters existing span candidates without
+re-encoding. HotpotQA jointly supervises answers and annotated supporting
+facts \citep{yang2018hotpotqa}; our evidence labels come from answer offsets.
+DPR uses dense passage retrieval with in-batch and BM25 hard negatives
+\citep{karpukhin2020dpr}; we mine the current ranker's highest-scoring
+eligible sentence within each window for a margin loss.
+\citet{jia2017adversarial} motivate evaluation with distracting sentences.
+Our contribution is a controlled study of this combination: negative-selection
+ablations, joint versus sequential decoding, and adversarial evaluation.
+These components have precedents; performance and robustness gains remain
+empirical questions.

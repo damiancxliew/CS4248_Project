@@ -89,3 +89,23 @@ def test_singleton_and_no_records(tmp_path):
     with pytest.raises(ValueError, match="no C7"):
         tables.make_tables(tmp_path / "absent", tmp_path / "out")
     assert not (tmp_path / "out").exists()
+
+
+def test_literature_cli_preserves_gaps_and_never_reads_runs(tmp_path):
+    runs, out = tmp_path / "runs", tmp_path / "out"
+    runs.mkdir()
+    # Invalid C7 input must not be read by the literature-only mode.
+    (runs / "invalid.json").write_text("not JSON")
+    tables.main(["--literature", "--runs-dir", str(runs), "--out-dir", str(out)])
+    with (out / "literature_squad11.csv").open(encoding="utf-8", newline="") as stream:
+        rows = {r["model"]: r for r in csv.DictReader(stream)}
+    assert rows["Logistic regression"]["em"] == ""
+    assert rows["SpanBERT-base"]["em"] == ""
+    assert rows["SpanBERT-base"]["f1"] != ""
+    assert rows["DeBERTaV3-base"]["f1"] == ""
+    assert all(r["url"].startswith("https://") and r["locator"] and r["caveat"]
+               for r in rows.values())
+    assert not (out / "run_summary.csv").exists()
+    tex = (out / "literature_squad11.tex").read_text(encoding="utf-8")
+    assert "Internal validation results are excluded" in tex
+    assert " & None" not in tex and " & nan" not in tex

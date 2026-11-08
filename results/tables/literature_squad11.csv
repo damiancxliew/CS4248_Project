@@ -1,0 +1,12 @@
+model,em,f1,citation,url,locator,caveat
+Logistic regression,,,rajpurkar2016squad,https://aclanthology.org/D16-1264.pdf,"Table 5, PDF p.8; p.2 footnote 1","Original paper reports v1.0, not verified v1.1 dev"
+BiDAF,67.7,77.3,seo2017bidaf,https://arxiv.org/pdf/1611.01603,"Table 1b, PDF p.6",Single; GloVe embeddings; not the ensemble or test row
+BERT-base,80.8,88.5,devlin2019bert,https://aclanthology.org/N19-1423.pdf,"Table 2, PDF p.7 (4177)",Single; no TriviaQA; BooksCorpus/Wikipedia pretraining
+BERT-large,84.1,90.9,devlin2019bert,https://aclanthology.org/N19-1423.pdf,"Table 2, PDF p.7 (4177)",Single; no TriviaQA; not whole-word-masking BERT
+SpanBERT-base,,92.4,joshi2020spanbert,https://github.com/facebookresearch/SpanBERT,"README Results table, starred base row",Author-reported dev F1 only; EM not supplied; cased base checkpoint
+SpanBERT-large,,,joshi2020spanbert,https://arxiv.org/pdf/1907.10529,"Table 1, PDF p.6",Headline EM/F1 is test; no verified dev pair in checked sources
+XLNet-large,89.7,95.1,yang2019xlnet,https://arxiv.org/pdf/1906.08237v2,"Table 3, PDF p.8; section 3.3",Revised full-data setting; differs from earlier 89.0/94.5 in RoBERTa Table 6
+RoBERTa-large,88.9,94.6,liu2019roberta,https://arxiv.org/pdf/1907.11692,"Table 6, PDF p.9; section 5.2","Single, no QA data augmentation; broader pretraining than BERT"
+DeBERTa-base,87.2,93.1,he2021deberta,https://arxiv.org/pdf/2006.03654,"Table 3, PDF p.7","Original DeBERTa, not V3; source columns are F1/EM"
+DeBERTa-large,90.1,95.5,he2021deberta,https://arxiv.org/pdf/2006.03654,"Table 2, PDF p.7",Original DeBERTa; source F1/EM reversed here; different pretraining from V3
+DeBERTaV3-base,,,he2023debertav3,https://arxiv.org/pdf/2111.09543,"Tables 4-5, PDF pp.7-8; official README NLU table",Paper reports SQuAD v2.0; no verified v1.1 dev pair in checked sources
