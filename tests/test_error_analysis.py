@@ -1,5 +1,6 @@
 """Tests for error_analysis against mocked C3/C6 inputs (no spaCy needed: NER is injected)."""
 import csv
+import json
 
 import pytest
 
@@ -90,3 +91,22 @@ def test_plot_category_shares_writes_png(tmp_path):
     path = tmp_path / "categories.png"
     ea.plot_category_shares({"span-only": table, "full": table}, path)
     assert path.read_bytes().startswith(b"\x89PNG")
+
+
+def test_cli_writes_report_and_audit(tmp_path):
+    squad = {"data": [{"paragraphs": [{"qas": [
+        {"id": q, "question": "what is it?", "answers": [{"text": g[0]}]} for q, g in GOLD.items()]}]}]}
+    files = {"--data-file": ("val.json", json.dumps(squad)),
+             "--predictions": ("val.predictions.json", json.dumps(PREDS)),
+             "--nbest": ("val.nbest.json", json.dumps({q: [{"sent_idx": 0}] for q in QIDS})),
+             "--evidence": ("evidence_val.jsonl",
+                            "\n".join(json.dumps({"id": q, **ev}) for q, ev in EVIDENCE.items()))}
+    args = []
+    for flag, (name, text) in files.items():
+        (tmp_path / name).write_text(text)
+        args += [flag, str(tmp_path / name)]
+    ea.main(args)
+    report = json.loads((tmp_path / "val.error_analysis.json").read_text())
+    assert report["n"] == len(QIDS) and report["top1"] == "span_implied"
+    assert sum(c["count"] for c in report["category_table"].values()) == report["errors"]
+    assert (tmp_path / "val.error_audit.csv").exists()

@@ -1,0 +1,74 @@
+# Final checkpoints: the only models scripts/run_all.sh evaluates on the test set. Owner: Clemen (C9).
+# Frozen at M3 (8 Nov). Changing a line after that needs the team's say-so, because test is used once.
+#
+# Rule (fixed before any test run): seed 42 for every system. The seeds are within about 0.1 val F1
+# of each other, so the choice would be arbitrary, and the error-analysis, ranking and adversarial
+# scripts already run on seed-42 outputs, so the tables describe the same models. Never "best seed
+# on test". λ is the G3 value in configs/evidence/best.yaml. `k` for the sequential pipelines
+# (R9a, R9b) is set on val only (C3) and stays null until then.
+#
+# R7 (λ = 0) re-decodes R4's checkpoint, and R9a/R9b re-decode R3/R4 outputs, so none of them has a
+# checkpoint of its own.
+#
+# sha256 is of model.pt, checked by `run_all.sh verify`. null = not collected yet, which blocks the
+# test stage. Large files stay out of git (shared on Drive; see README §6); fetch each one into
+# `checkpoint`, a directory holding model.pt, encoder/, tokenizer files and config.yaml:
+#   mkdir -p outputs/<run_id>/best && unzip -j <run_id>.zip -d outputs/<run_id>/best
+# (the r3_share zips hold those files directly; Xin Hui's R5 tar already unpacks to .../best/).
+# `record` is the committed val run record for the same seed; run_all.sh reuses its identity and
+# training fields (git_sha, config, GPU hours) for the test record.
+
+seed: 42
+decode:
+  lam: 0.25      # configs/evidence/best.yaml (G3)
+  k: null        # C3: set on val, then frozen here
+
+checkpoints:
+  - run_id: r2_bert_span
+    system: bert_span_only
+    kind: span
+    checkpoint: outputs/r2_bert_span_s42/best
+    record: results/runs/r2_bert_span_s42.json
+    sha256: eac138420d5b502fa43e5a9b9218d4edaebbacb8deebfbead02427b0548ce276
+
+  - run_id: r3_deberta_span
+    system: deberta_span_only
+    kind: span
+    checkpoint: outputs/r3_deberta_span_s42/best
+    record: results/runs/r3_deberta_span_s42.json
+    sha256: 4c197db8d4ed50828ac014a3acd08f8235a2e4f22fec9bd8757de4059c865f94
+    archive_sha256: 8a832807be682334592f5aac030c332d662f9fa1d1f52910cacffa00ef17217a  # r3_deberta_span_s42.zip
+
+  - run_id: r4_deberta_evidence
+    system: deberta_evidence
+    kind: evidence
+    checkpoint: outputs/r4_deberta_evidence_s42/best
+    record: results/runs/r4_deberta_evidence_s42.json
+    sha256: null                 # TODO Gokul: R4 seed-42 handoff
+
+  - run_id: r5_deberta_evidence
+    system: deberta_evidence
+    kind: evidence
+    checkpoint: outputs/r5_deberta_evidence_s42/best
+    record: results/runs/r5_deberta_evidence_s42.json
+    sha256: b5b4c2470ca2aac36c263caae2fad97170d247253fcd5fd7a5953e5483fe0877  # Xin Hui's r5-handoff.tar
+
+  - run_id: r6_deberta_evidence
+    system: deberta_evidence
+    kind: evidence
+    checkpoint: outputs/r6_deberta_evidence_s42/best
+    record: results/runs/r6_deberta_evidence_s42.json
+    sha256: null                 # TODO Jun Yip: R6 has no run records on main yet
+
+  - run_id: r6b_deberta_evidence
+    system: deberta_evidence
+    kind: evidence
+    checkpoint: outputs/r6b_deberta_evidence_s42/best
+    record: results/runs/r6b_deberta_evidence_s42.json
+    sha256: 6ac8766142762aa5ddae3130392e152444887b0dd65e5ddaac6c5cd5eceb14ae
+
+# Re-decodings of the checkpoints above (no training, no checkpoint of their own).
+decodings:
+  - run_id: r7_deberta_evidence
+    from: r4_deberta_evidence
+    lam: 0.0

@@ -3,6 +3,8 @@
 The mocks live here only. The `k = all` equality test runs against Gokul's real
 evidence_decoder.py (needs torch, so it is skipped where torch is missing).
 """
+import json
+
 import numpy as np
 import pytest
 
@@ -126,3 +128,37 @@ def test_k_all_equals_the_joint_decoder_at_lambda_zero():
     for qid, text in top1.items():
         kept = [c for c in nbest[qid] if c["sent_idx"] == ranking[qid][0][0]]
         assert text == (max(kept, key=lambda c: c["start_logit"] + c["end_logit"])["text"] if kept else "")
+
+
+def _write_cli_inputs(tmp_path):
+    squad = {"data": [{"paragraphs": [{"qas": [
+        {"id": q, "question": "what?", "answers": [{"text": g[0]}]} for q, g in GOLD.items()]}]}]}
+    paths = {
+        "nbest": tmp_path / "val.joint_lam0.25.nbest.json",
+        "sent_rank": tmp_path / "val.sent_rank.json",
+        "evidence": tmp_path / "evidence_val.jsonl",
+        "data_file": tmp_path / "val.json",
+    }
+    paths["nbest"].write_text(json.dumps(NBEST))
+    paths["sent_rank"].write_text(json.dumps(SENT_RANK))
+    paths["evidence"].write_text("\n".join(json.dumps({"id": q, **ev}) for q, ev in EVIDENCE.items()))
+    paths["data_file"].write_text(json.dumps(squad))
+    return [arg for key, path in paths.items() for arg in (f"--{key.replace('_', '-')}", str(path))]
+
+
+def test_cli_sweep_and_single_k(tmp_path):
+    args = _write_cli_inputs(tmp_path)
+    sd.main(args)
+    sweep = json.loads((tmp_path / "val.sequential_sweep.json").read_text())
+    assert set(sweep) == {"1", "2", "3", "all"}
+    assert sweep["all"]["recall_at_k"] == 1.0
+    sd.main(args + ["--k", "1"])
+    preds = json.loads((tmp_path / "val.sequential_k1.predictions.json").read_text())
+    assert preds == sd.decode(NBEST, SENT_RANK, 1)
+
+
+def test_cli_refuses_test_split(tmp_path):
+    args = _write_cli_inputs(tmp_path)
+    args[args.index("--data-file") + 1] = str(tmp_path / "dev-v1.1.json")
+    with pytest.raises(SystemExit):
+        sd.main(args)

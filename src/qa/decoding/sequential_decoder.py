@@ -7,7 +7,20 @@ Inputs are following the team contracts:
 
 The reader picks, among the n-best spans lying in the kept sentences, the one with the
 highest start_logit + end_logit (no sentence term; that is the joint decoder's job).
+
+Usage (the C6 nbest needs sent_idx: use ``<split>.joint_lam*.nbest.json`` or predict.py --evidence):
+  python -m qa.decoding.sequential_decoder --nbest outputs/<run_id>/val.joint_lam0.25.nbest.json
+      --sent-rank outputs/<run_id>/val.sent_rank.json --evidence data/processed/evidence_val.jsonl
+      --data-file data/processed/val.json                 # sweep k in {1, 2, 3, all} on val
+  ... --k 2                                               # write <split>.sequential_k2.predictions.json
+
+The sweep writes ``<split>.sequential_sweep.json`` next to the nbest (or to ``--out-dir``). The test
+split needs ``--allow-test`` (``run_all.sh``).
 """
+import argparse
+import json
+from pathlib import Path
+
 from qa.eval.official import load_official_metrics
 
 K_ALL = "all"
@@ -131,3 +144,50 @@ def sweep(nbest, sent_rank, evidence, gold_answers, ks=DEFAULT_KS):
             **split,
         }
     return results
+
+
+def _parse_k(text):
+    return K_ALL if text == K_ALL else int(text)
+
+
+def _read_gold(squad_file):
+    data = json.loads(Path(squad_file).read_text())["data"]
+    return {qa["id"]: [a["text"] for a in qa["answers"]]
+            for article in data for p in article["paragraphs"] for qa in p["qas"]}
+
+
+def main(argv=None):
+    parser = argparse.ArgumentParser(description=__doc__.split("\n")[0])
+    parser.add_argument("--nbest", required=True, help="C6 <split>.*nbest.json with sent_idx filled")
+    parser.add_argument("--sent-rank", required=True, help="C8 <split>.sent_rank.json (any ranker)")
+    parser.add_argument("--evidence", required=True, help="C3 evidence_<split>.jsonl")
+    parser.add_argument("--data-file", required=True, help="the SQuAD-format file the nbest comes from")
+    parser.add_argument("--k", type=_parse_k, help="write predictions for this k; default: sweep all of --ks")
+    parser.add_argument("--ks", type=_parse_k, nargs="+", default=list(DEFAULT_KS))
+    parser.add_argument("--out-dir")
+    parser.add_argument("--allow-test", action="store_true", help=argparse.SUPPRESS)
+    args = parser.parse_args(argv)
+    if Path(args.data_file).name.lower() == "dev-v1.1.json" and not args.allow_test:
+        raise SystemExit("Refusing to decode test (dev-v1.1.json). Only final checkpoints, via "
+                         "scripts/run_all.sh, which passes --allow-test.")
+    nbest = json.loads(Path(args.nbest).read_text())
+    sent_rank = json.loads(Path(args.sent_rank).read_text())
+    out_dir = Path(args.out_dir or Path(args.nbest).parent)
+    out_dir.mkdir(parents=True, exist_ok=True)
+    split = Path(args.nbest).name.split(".")[0]
+    if args.k is not None:
+        path = out_dir / f"{split}.sequential_k{args.k}.predictions.json"
+        path.write_text(json.dumps(decode(nbest, sent_rank, args.k), indent=1))
+        print(f"predictions: {path}")
+        return
+    evidence = {rec["id"]: rec for rec in map(json.loads, Path(args.evidence).read_text().splitlines()) if rec}
+    results = sweep(nbest, sent_rank, evidence, _read_gold(args.data_file), args.ks)
+    path = out_dir / f"{split}.sequential_sweep.json"
+    path.write_text(json.dumps({str(k): v for k, v in results.items()}, indent=1))
+    for k, r in results.items():
+        print(f"k={k}: Recall@k {100 * r['recall_at_k']:.2f}  EM {100 * r['exact']:.2f}  F1 {100 * r['f1']:.2f}")
+    print(f"sweep: {path}")
+
+
+if __name__ == "__main__":
+    main()
