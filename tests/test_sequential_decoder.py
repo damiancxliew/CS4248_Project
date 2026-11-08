@@ -1,8 +1,9 @@
 """Tests for sequential_decoder, run against mocks of the C3/C6/C8 contracts.
 
-The mocks live here only. The `k = all` equality test against Gokul's
-evidence_decoder.py is not written yet (needs the real upstream module).
+The mocks live here only. The `k = all` equality test runs against Gokul's real
+evidence_decoder.py (needs torch, so it is skipped where torch is missing).
 """
+import numpy as np
 import pytest
 
 from qa.decoding import sequential_decoder as sd
@@ -107,3 +108,21 @@ def test_candidate_outside_every_sentence_is_kept_only_by_k_all():
     rank = {"q": [[0, -0.1], [1, -1.0]]}
     assert sd.decode(nbest, rank, 1) == {"q": "in 0"}
     assert sd.decode(nbest, rank, sd.K_ALL) == {"q": "stray"}
+
+
+def test_k_all_equals_the_joint_decoder_at_lambda_zero():
+    pytest.importorskip("torch")  # evidence_decoder imports qa.predict
+    from test_evidence_decoder import sample
+    from qa.decoding.evidence_decoder import decode_joint
+
+    contexts, evidence, example_ids, offsets = sample()
+    rng = np.random.default_rng(0)
+    start, end = rng.normal(size=(2, *offsets.shape[:2]))
+    ranking = {qid: [[s, -0.5 * s] for s in range(len(rec["sentences"]))] for qid, rec in evidence.items()}
+    preds, nbest = decode_joint(contexts, example_ids, offsets, start, end, ranking, evidence, lam=0.0)
+    assert sd.decode(nbest, ranking, sd.K_ALL) == preds
+    # k = 1 keeps only the top-ranked sentence's candidates, and reads the best of those
+    top1 = sd.decode(nbest, ranking, 1)
+    for qid, text in top1.items():
+        kept = [c for c in nbest[qid] if c["sent_idx"] == ranking[qid][0][0]]
+        assert text == (max(kept, key=lambda c: c["start_logit"] + c["end_logit"])["text"] if kept else "")
