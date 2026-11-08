@@ -128,6 +128,28 @@ def evidence_conditioned_accuracy(records, top1_sent, evidence):
     return {"top1_correct": acc(right), "top1_wrong": acc(wrong)}
 
 
+def plot_category_shares(tables, path):
+    """Horizontal bars of each error category's share of errors, one bar per system.
+
+    tables: {system label: category_table(...)}, e.g. span-only vs. full model.
+    """
+    from matplotlib.figure import Figure
+
+    height = 0.8 / len(tables)
+    fig = Figure(figsize=(6, 3.2))
+    ax = fig.subplots()
+    for i, (label, table) in enumerate(tables.items()):
+        ys = [j + i * height for j in range(len(CATEGORIES))]
+        shares = [100 * table[c]["share"] for c in CATEGORIES]
+        ax.barh(ys, shares, height=height, label=label)
+    ax.set_yticks([j + 0.4 - height / 2 for j in range(len(CATEGORIES))], CATEGORIES)
+    ax.invert_yaxis()
+    ax.set_xlabel("share of errors (%)")
+    ax.legend(frameon=False)
+    fig.tight_layout()
+    fig.savefig(path, dpi=200)
+
+
 def _safe_cell(value):
     """Prefix a quote so spreadsheets do not evaluate text starting with = + - @ as a formula."""
     text = str(value)

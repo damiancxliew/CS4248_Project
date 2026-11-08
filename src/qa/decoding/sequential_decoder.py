@@ -24,9 +24,14 @@ def decode_question(nbest, ranking, k):
     """Best span text among n-best candidates inside the top-k sentences, or None.
 
     None means no candidate falls in the kept sentences (the reader has nothing to read).
+    A candidate with sent_idx None (span starts in no sentence) is kept only by k = 'all', like
+    the joint decoder keeps it.
     """
-    kept = top_k_sentences(ranking, k)
-    in_kept = [c for c in nbest if int(c["sent_idx"]) in kept]
+    if k == K_ALL:
+        in_kept = list(nbest)
+    else:
+        kept = top_k_sentences(ranking, k)
+        in_kept = [c for c in nbest if c["sent_idx"] is not None and int(c["sent_idx"]) in kept]
     if not in_kept:
         return None
     return max(in_kept, key=lambda c: c["start_logit"] + c["end_logit"])["text"]
@@ -83,6 +88,29 @@ def error_split(preds, sent_rank, evidence, gold_answers, k):
             counts["reader_error"] += 1
     n = len(evidence)
     return {**counts, "n": n, **{f"{name}_rate": c / n for name, c in counts.items()}}
+
+
+def plot_recall_ceiling(results, path):
+    """Recall@k (the ceiling, dashed) against the achieved EM (solid), one colour per pipeline.
+
+    results: {pipeline label: sweep(...) output}, e.g. BM25 + span-only reader vs. our ranker.
+    """
+    from matplotlib.figure import Figure
+
+    fig = Figure(figsize=(5, 3.4))
+    ax = fig.subplots()
+    for i, (label, res) in enumerate(results.items()):
+        ks = list(res)
+        xs = range(len(ks))
+        colour = f"C{i}"
+        ax.plot(xs, [100 * res[k]["recall_at_k"] for k in ks], "--o", color=colour, label=f"{label}: Recall@k")
+        ax.plot(xs, [100 * res[k]["exact"] for k in ks], "-o", color=colour, label=f"{label}: EM")
+    ax.set_xticks(range(len(ks)), [str(k) for k in ks])
+    ax.set_xlabel("sentences kept (k)")
+    ax.set_ylabel("%")
+    ax.legend(frameon=False, fontsize=8)
+    fig.tight_layout()
+    fig.savefig(path, dpi=200)
 
 
 def sweep(nbest, sent_rank, evidence, gold_answers, ks=DEFAULT_KS):

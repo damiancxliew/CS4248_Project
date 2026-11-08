@@ -90,3 +90,20 @@ def test_exact_can_exceed_recall_when_answer_text_repeats_in_another_sentence():
     assert res[1]["recall_at_k"] == 0.0
     assert res[1]["exact"] == 1.0
     assert res[1]["ranker_error"] == 0
+
+
+def test_plot_recall_ceiling_writes_png(tmp_path):
+    res = sd.sweep(NBEST, SENT_RANK, EVIDENCE, GOLD)
+    path = tmp_path / "ceiling.png"
+    sd.plot_recall_ceiling({"ranker A": res, "ranker B": res}, path)
+    assert path.read_bytes().startswith(b"\x89PNG")
+
+
+def test_candidate_outside_every_sentence_is_kept_only_by_k_all():
+    nbest = {"q": [
+        {"text": "stray", "start_logit": 9.0, "end_logit": 9.0, "sent_idx": None},
+        {"text": "in 0", "start_logit": 1.0, "end_logit": 1.0, "sent_idx": 0},
+    ]}
+    rank = {"q": [[0, -0.1], [1, -1.0]]}
+    assert sd.decode(nbest, rank, 1) == {"q": "in 0"}
+    assert sd.decode(nbest, rank, sd.K_ALL) == {"q": "stray"}

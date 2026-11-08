@@ -82,3 +82,11 @@ def test_audit_sheet_samples_only_errors_with_blank_label(tmp_path):
     rows = list(csv.DictReader(open(path, encoding="utf-8")))
     assert len(rows) == 2 and set(sample) <= {"b", "c", "d"}
     assert all(r["human_label"] == "" and r["auto_category"] for r in rows)
+
+
+def test_plot_category_shares_writes_png(tmp_path):
+    rec = ea.analyse(PREDS, PRED_SENT, EVIDENCE, GOLD, mock_ner)
+    table = ea.category_table(rec)
+    path = tmp_path / "categories.png"
+    ea.plot_category_shares({"span-only": table, "full": table}, path)
+    assert path.read_bytes().startswith(b"\x89PNG")
