@@ -4,15 +4,14 @@
 # Usage: bash scripts/run_all.sh data       # check SQuAD files, build val/test splits and C3 evidence
 #        bash scripts/run_all.sh verify     # sha256 of every checkpoint (6 systems x 3 seeds) in configs/final_checkpoints.yaml
 #        bash scripts/run_all.sh test       # predict + decode + score each frozen checkpoint on test
-#        bash scripts/run_all.sh sequential # R9b: R4's top-k sentences, then read (needs decode.k in the manifest)
+#        bash scripts/run_all.sh sequential # R9a (BM25 + R3) and R9b (R4's ranker + reader); needs decode.k
 #        bash scripts/run_all.sh errors     # C8 error analysis of R3 (span-implied) and R4 (C8 ranking), seed 42
 #        bash scripts/run_all.sh tables     # results/tables/test/*.csv|tex from the test records
 #        bash scripts/run_all.sh all        # data, verify, test, sequential, errors, tables
 #
 # Needs a GPU for `test` (same cluster setup as the training sbatch files; run it on a compute node).
-# Not wired in yet (owner): R9a (BM25 ranking, Jun Yip J6a), ranking metrics (J6), adversarial (J5),
-# significance (table owners), efficiency (Damian, D5). `all` lists them at the end so nothing is
-# silently missing.
+# Not wired in yet (owner): ranking metrics on test (Jun Yip, J6b), adversarial (J5), significance
+# (table owners), efficiency (Damian, D5). `all` lists them at the end so nothing is silently missing.
 # QA_PYTHON may select a Python executable.
 set -euo pipefail
 
@@ -80,12 +79,24 @@ cmd_verify() {
     return "$failed"
 }
 
-# score <run_id> <seed-record> <predictions file> <out run_id>
+# score <run_id> <seed-record> <predictions file> <out run_id> [variant]
+# A re-decoding that reuses another run's record (R9a, R9b) passes its own variant, so make_tables.py
+# does not pool it with the run it borrows from.
 score() {
-    local out="$test_runs/$4.json"
+    local out="$test_runs/$4.json" meta="$2"
     if [[ -e "$out" ]]; then echo "skip $out (exists; delete it to re-score)"; return; fi
+    if [[ -n "${5:-}" ]]; then
+        meta="$(mktemp)"
+        "$qa_python" - "$2" "$meta" "$5" <<'PY'
+import json, sys
+record = json.load(open(sys.argv[1]))
+record["variant"] = sys.argv[3]
+json.dump(record, open(sys.argv[2], "w"))
+PY
+    fi
     "$qa_python" -m qa.eval.run_eval --data-file data/raw/dev-v1.1.json --predictions "$3" \
-        --metadata "$2" --split test --run-id "$4" --out-file "$out" --allow-test
+        --metadata "$meta" --split test --run-id "$4" --out-file "$out" --allow-test
+    if [[ "$meta" != "$2" ]]; then rm -f "$meta"; fi
 }
 
 cmd_test() {
@@ -121,13 +132,22 @@ cmd_sequential() {
     k="$(manifest_value decode.k)"
     if [[ "$k" == "None" ]]; then echo "decode.k is not frozen in $manifest (set it on val first)" >&2; return 1; fi
     mkdir -p "$test_runs"
+    "$qa_python" -m qa.baselines.bm25_ranker --split test --allow-test  # R1: outputs/r1_bm25/test.sent_rank.json
     for seed in $(manifest_value seeds | tr -d '[],'); do
+        # R9a: BM25 top-k sentences, then R3's reader
+        dir=outputs/r3_deberta_span_s${seed}
+        "$qa_python" -m qa.decoding.sequential_decoder --nbest "$dir/test.nbest.json" \
+            --sent-rank outputs/r1_bm25/test.sent_rank.json --evidence data/processed/evidence_test.jsonl \
+            --data-file data/raw/dev-v1.1.json --k "$k" --allow-test
+        score r3_deberta_span results/runs/r3_deberta_span_s${seed}.json \
+            "$dir/test.sequential_k${k}.predictions.json" "r9a_sequential_k${k}_s${seed}_test" "sequential_bm25_k${k}"
+        # R9b: R4's own top-k sentences, then R4's reader
         dir=outputs/r4_deberta_evidence_s${seed}
         "$qa_python" -m qa.decoding.sequential_decoder --nbest "$dir/test.joint_lam$(manifest_value decode.lam).nbest.json" \
             --sent-rank "$dir/test.sent_rank.json" --evidence data/processed/evidence_test.jsonl \
             --data-file data/raw/dev-v1.1.json --k "$k" --allow-test
         score r4_deberta_evidence results/runs/r4_deberta_evidence_s${seed}.json \
-            "$dir/test.sequential_k${k}.predictions.json" "r9b_sequential_k${k}_s${seed}_test"
+            "$dir/test.sequential_k${k}.predictions.json" "r9b_sequential_k${k}_s${seed}_test" "sequential_model_k${k}"
     done
 }
 
@@ -159,7 +179,7 @@ case "${1:-}" in
     tables) cmd_tables ;;
     all)
         cmd_data; cmd_test; cmd_sequential; cmd_errors; cmd_tables
-        echo "Not wired in yet: R9a, ranking metrics, adversarial, significance, efficiency" \
+        echo "Not wired in yet: ranking metrics, adversarial, significance, efficiency" \
              "(see the header of this script)." >&2
         ;;
     *) sed -n '2,11p' "$0" >&2; exit 2 ;;
