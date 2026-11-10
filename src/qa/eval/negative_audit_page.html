@@ -1,0 +1,218 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>J3 Negative Audit</title>
+<style>
+:root {
+  --bg: #f6f5f2; --card: #ffffff; --ink: #1d1d1b; --muted: #6b6a66; --line: #e2e0da;
+  --accent: #2f5bd3; --hl: #fff1a8; --y: #1f8a4c; --n: #c0392b; --p: #b7791f; --f: #c0392b; --e: #6b6a66;
+}
+@media (prefers-color-scheme: dark) {
+  :root { --bg: #161615; --card: #20201e; --ink: #ecebe6; --muted: #a09f99; --line: #33322f;
+          --accent: #7ea0ff; --hl: #5a4b00; }
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--ink);
+       font: 16px/1.55 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+main { max-width: 860px; margin: 0 auto; padding: 20px 16px 80px; }
+header { display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: center; justify-content: space-between; }
+h1 { font-size: 18px; margin: 0; }
+.bar { height: 6px; background: var(--line); border-radius: 3px; margin: 12px 0 20px; overflow: hidden; }
+.bar > div { height: 100%; background: var(--accent); width: 0; transition: width .2s; }
+.muted { color: var(--muted); font-size: 14px; }
+.q { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 16px 18px; margin-bottom: 16px; }
+.q .question { font-size: 20px; font-weight: 600; }
+.q .answer { margin-top: 6px; }
+.answer b { background: var(--hl); padding: 0 4px; border-radius: 3px; }
+.card { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 14px 18px; margin-bottom: 12px; }
+.card.active { border-color: var(--accent); box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 25%, transparent); }
+.card .tag { font-size: 12px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; color: var(--muted); }
+.card .sent { margin: 6px 0 10px; font-size: 17px; }
+mark { background: var(--hl); color: inherit; padding: 0 2px; border-radius: 2px; }
+.btns { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+button { font: inherit; font-size: 14px; border: 1px solid var(--line); background: var(--bg); color: var(--ink);
+         border-radius: 7px; padding: 6px 12px; cursor: pointer; }
+button:hover { border-color: var(--accent); }
+button.on { color: #fff; border-color: transparent; }
+button.on[data-v=Y] { background: var(--y); } button.on[data-v=N] { background: var(--n); }
+button.on[data-v=P] { background: var(--p); } button.on[data-v=F] { background: var(--f); }
+button.on[data-v=E] { background: var(--e); }
+button.sug { border: 2px dashed var(--accent); font-weight: 700; }
+.reason { font-size: 14px; color: var(--muted); margin: -4px 0 10px; }
+.reason b { color: var(--ink); }
+.card.todo { border-left: 4px solid var(--accent); }
+input.note { flex: 1 1 200px; min-width: 0; font: inherit; font-size: 14px; padding: 6px 10px;
+             border: 1px solid var(--line); border-radius: 7px; background: var(--bg); color: var(--ink); }
+nav { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 18px; align-items: center; }
+nav .spacer { flex: 1; }
+details { margin-top: 24px; }
+.legend { display: grid; grid-template-columns: auto 1fr; gap: 4px 12px; font-size: 14px; }
+kbd { font: 12px ui-monospace, monospace; border: 1px solid var(--line); border-radius: 4px; padding: 0 5px; }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <h1>J3 Negative Audit</h1>
+    <span class="muted" id="progress"></span>
+  </header>
+  <div class="bar"><div id="bar"></div></div>
+  <div id="view"></div>
+  <nav>
+    <button id="prev">← Prev</button>
+    <button id="next">Next →</button>
+    <button id="nextBlank">Next unlabelled</button>
+    <button id="acceptQ">Accept all suggestions here (A)</button>
+    <span class="spacer"></span>
+    <button id="export">Download CSV</button>
+    <label><button id="importBtn" type="button">Load CSV</button>
+      <input type="file" id="import" accept=".csv" hidden></label>
+  </nav>
+  <details open>
+    <summary class="muted">How to rate</summary>
+    <div class="legend" style="margin-top:8px">
+      <b>Gold</b><span><b>Y</b> it is the sentence that supports the answer · <b>N</b> it isn't really the evidence</span>
+      <b>Other</b><span><b>F</b> false negative: it also answers the question · <b>P</b> plausible: on topic, could fool a reader, but doesn't answer · <b>E</b> easy: clearly irrelevant</span>
+      <b>Keys</b><span><kbd>Y</kbd> <kbd>N</kbd> <kbd>P</kbd> <kbd>F</kbd> <kbd>E</kbd> rate the highlighted sentence · <kbd>Enter</kbd> accept its suggestion · <kbd>A</kbd> accept all suggestions on this question · <kbd>↑</kbd> <kbd>↓</kbd> move between sentences · <kbd>←</kbd> <kbd>→</kbd> previous / next question</span>
+      <b>Suggestions</b><span>The dashed button is Claude's draft label, with its reason underneath. Nothing counts until you accept it or pick a different label. Read the sentence before accepting.</span>
+    </div>
+    <p class="muted">Labels save in this browser automatically. When done (or to back up), click <b>Download CSV</b> and save it over <code>results/audits/j3_sheet.csv</code>.</p>
+  </details>
+</main>
+<script>
+const ROWS = __DATA__;
+const STORE = "j3-audit-labels-v1";
+const COLUMNS = ["qid", "item", "question", "answer", "gold_sentence", "sentence", "label", "note", "draft", "reason"];
+
+let saved = {};
+try { saved = JSON.parse(localStorage.getItem(STORE) || "{}"); } catch (e) {}
+for (const r of ROWS) {
+  const s = saved[r.qid + "|" + r.item];
+  if (s) { r.label = s.label || r.label; r.note = s.note ?? r.note; }
+}
+const qids = [...new Set(ROWS.map(r => r.qid))];
+const byQ = Object.fromEntries(qids.map(q => [q, ROWS.filter(r => r.qid === q)]));
+let qi = 0, active = 0;
+try { qi = Math.min(+localStorage.getItem(STORE + "-pos") || 0, qids.length - 1); } catch (e) {}
+
+function persist() {
+  const out = {};
+  for (const r of ROWS) if (r.label || r.note) out[r.qid + "|" + r.item] = { label: r.label, note: r.note };
+  try { localStorage.setItem(STORE, JSON.stringify(out)); localStorage.setItem(STORE + "-pos", qi); } catch (e) {}
+}
+const esc = s => s.replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+function highlight(text, answers) {
+  let html = esc(text);
+  for (const a of answers.split(" | ").filter(Boolean).sort((x, y) => y.length - x.length)) {
+    const re = new RegExp(esc(a).replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "gi");
+    html = html.replace(re, m => "<mark>" + m + "</mark>");
+  }
+  return html;
+}
+
+function render() {
+  const rows = byQ[qids[qi]], first = rows[0];
+  const done = ROWS.filter(r => r.label).length;
+  document.getElementById("progress").textContent =
+    `Question ${qi + 1} / ${qids.length} · ${done} / ${ROWS.length} sentences rated`;
+  document.getElementById("bar").style.width = (100 * done / ROWS.length) + "%";
+  let html = `<div class="q"><div class="question">${esc(first.question)}</div>
+    <div class="answer muted">Answer: <b>${esc(first.answer)}</b></div></div>`;
+  rows.forEach((r, i) => {
+    const gold = r.item === "G";
+    const opts = gold ? ["Y", "N"] : ["P", "F", "E"];
+    const tag = gold ? "Gold sentence — is this the right evidence?" : `Other sentence ${r.item.slice(1)} — how good a wrong sentence is it?`;
+    const why = r.draft ? `<div class="reason">Suggested <b>${esc(r.draft)}</b>: ${esc(r.reason || "")}</div>` : "";
+    html += `<div class="card ${i === active ? "active" : ""} ${r.label ? "" : "todo"}" data-i="${i}">
+      <div class="tag">${tag}</div>
+      <div class="sent">${highlight(r.sentence, first.answer)}</div>
+      ${why}
+      <div class="btns">${opts.map(v => `<button data-v="${v}" class="${r.label === v ? "on" : ""} ${!r.label && r.draft === v ? "sug" : ""}">${v}</button>`).join("")}
+        <input class="note" placeholder="note (optional)" value="${esc(r.note || "")}"></div></div>`;
+  });
+  if (rows.length === 1) html += `<p class="muted">No other sentences for this question (every other sentence contains the answer). Just rate the gold.</p>`;
+  const view = document.getElementById("view");
+  view.innerHTML = html;
+  view.querySelectorAll(".card").forEach(card => {
+    const r = rows[+card.dataset.i];
+    card.addEventListener("click", () => { if (active !== +card.dataset.i) { active = +card.dataset.i; mark(); } });
+    card.querySelectorAll("button").forEach(b => b.addEventListener("click", () => {
+      r.label = r.label === b.dataset.v ? "" : b.dataset.v; persist(); advance();
+    }));
+    card.querySelector(".note").addEventListener("input", e => { r.note = e.target.value; persist(); });
+  });
+}
+function mark() { document.querySelectorAll(".card").forEach((c, i) => c.classList.toggle("active", i === active)); }
+function advance() {
+  const rows = byQ[qids[qi]];
+  const nxt = rows.findIndex(r => !r.label);
+  if (nxt >= 0) { active = nxt; render(); } else render();
+}
+function go(i) { qi = Math.max(0, Math.min(qids.length - 1, i)); active = 0; persist(); render(); window.scrollTo(0, 0); }
+
+document.getElementById("prev").onclick = () => go(qi - 1);
+document.getElementById("next").onclick = () => go(qi + 1);
+document.getElementById("nextBlank").onclick = () => {
+  for (let k = 1; k <= qids.length; k++) {
+    const j = (qi + k) % qids.length;
+    if (byQ[qids[j]].some(r => !r.label)) return go(j);
+  }
+  alert("Everything is rated. Click Download CSV.");
+};
+function acceptAll() {
+  for (const r of byQ[qids[qi]]) if (!r.label && r.draft) r.label = r.draft;
+  persist(); render();
+}
+document.getElementById("acceptQ").onclick = acceptAll;
+document.addEventListener("keydown", e => {
+  if (e.target.tagName === "INPUT") return;
+  const rows = byQ[qids[qi]], k = e.key.toUpperCase();
+  if (e.key === "Enter") { const r = rows[active]; if (r.draft) { r.label = r.draft; persist(); advance(); } e.preventDefault(); return; }
+  if (k === "A") return acceptAll();
+  if (e.key === "ArrowRight") return go(qi + 1);
+  if (e.key === "ArrowLeft") return go(qi - 1);
+  if (e.key === "ArrowDown") { active = Math.min(active + 1, rows.length - 1); e.preventDefault(); return mark(); }
+  if (e.key === "ArrowUp") { active = Math.max(active - 1, 0); e.preventDefault(); return mark(); }
+  const r = rows[active], ok = r.item === "G" ? ["Y", "N"] : ["P", "F", "E"];
+  if (ok.includes(k)) { r.label = k; persist(); advance(); }
+});
+
+const csvCell = v => /[",\n\r]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v;
+document.getElementById("export").onclick = () => {
+  const text = [COLUMNS.join(","), ...ROWS.map(r => COLUMNS.map(c => csvCell(String(r[c] ?? ""))).join(","))].join("\r\n") + "\r\n";
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(new Blob([text], { type: "text/csv" }));
+  a.download = "j3_sheet.csv"; a.click();
+};
+function parseCSV(text) {
+  const out = []; let row = [], cell = "", q = false;
+  for (let i = 0; i < text.length; i++) {
+    const c = text[i];
+    if (q) { if (c === '"' && text[i + 1] === '"') { cell += '"'; i++; } else if (c === '"') q = false; else cell += c; }
+    else if (c === '"') q = true;
+    else if (c === ",") { row.push(cell); cell = ""; }
+    else if (c === "\n" || c === "\r") { if (c === "\r" && text[i + 1] === "\n") i++; row.push(cell); out.push(row); row = []; cell = ""; }
+    else cell += c;
+  }
+  if (cell || row.length) { row.push(cell); out.push(row); }
+  return out;
+}
+document.getElementById("importBtn").onclick = () => document.getElementById("import").click();
+document.getElementById("import").onchange = async e => {
+  const f = e.target.files[0]; if (!f) return;
+  const [head, ...body] = parseCSV((await f.text()).replace(/^﻿/, ""));
+  const ix = Object.fromEntries(head.map((h, i) => [h, i]));
+  const map = Object.fromEntries(ROWS.map(r => [r.qid + "|" + r.item, r]));
+  let n = 0;
+  for (const cells of body) {
+    const r = map[cells[ix.qid] + "|" + cells[ix.item]];
+    if (r) { r.label = (cells[ix.label] || "").trim().toUpperCase(); r.note = cells[ix.note] || ""; n++; }
+  }
+  persist(); render(); alert(`Loaded labels for ${n} rows.`);
+};
+render();
+</script>
+</body>
+</html>
