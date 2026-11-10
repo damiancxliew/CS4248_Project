@@ -1,0 +1,236 @@
+{
+ "meta": {
+  "split": "val",
+  "gpu": "NVIDIA H100 NVL MIG 3g.47gb",
+  "batch_size": 64,
+  "repeats": 3,
+  "limit": null,
+  "torch": "2.6.0+cu124",
+  "transformers": "4.49.0",
+  "host": "xgpi13",
+  "git_sha": "e7fd55c32e235228b7ce6b0dff8febd9291bc916",
+  "date": "2026-11-10T01:38:32+00:00"
+ },
+ "rows": [
+  {
+   "name": "bert_span",
+   "system": "bert_span_only",
+   "variant": "span_only",
+   "decoder": "span",
+   "lam": 0.0,
+   "k": null,
+   "encoder": "bert-base-uncased",
+   "checkpoint": null,
+   "params_M": 109.484,
+   "n_questions": 9340,
+   "n_windows": 9418,
+   "batch_size": 64,
+   "precision": "bf16",
+   "segment_s": 0.0,
+   "features_s": 7.9487,
+   "forward_s": 10.2024,
+   "decode_s": 6.7051,
+   "runs_s": {
+    "segment": [
+     0.0,
+     0.0,
+     0.0
+    ],
+    "features": [
+     8.0506,
+     7.9184,
+     7.9487
+    ],
+    "forward": [
+     10.2024,
+     10.1783,
+     10.2104
+    ],
+    "decode": [
+     6.8094,
+     6.6747,
+     6.7051
+    ]
+   },
+   "model_qps": 552.42,
+   "e2e_qps": 375.76,
+   "peak_mem_gb": 1.25
+  },
+  {
+   "name": "deberta_span",
+   "system": "deberta_span_only",
+   "variant": "span_only",
+   "decoder": "span",
+   "lam": 0.0,
+   "k": null,
+   "encoder": "microsoft/deberta-v3-base",
+   "checkpoint": null,
+   "params_M": 183.833,
+   "n_questions": 9340,
+   "n_windows": 9400,
+   "batch_size": 64,
+   "precision": "bf16",
+   "segment_s": 0.0,
+   "features_s": 8.2728,
+   "forward_s": 26.5627,
+   "decode_s": 7.0685,
+   "runs_s": {
+    "segment": [
+     0.0,
+     0.0,
+     0.0
+    ],
+    "features": [
+     8.1718,
+     8.2728,
+     8.2863
+    ],
+    "forward": [
+     26.8581,
+     26.4344,
+     26.5627
+    ],
+    "decode": [
+     7.1072,
+     7.0685,
+     6.9443
+    ]
+   },
+   "model_qps": 277.72,
+   "e2e_qps": 222.89,
+   "peak_mem_gb": 3.25
+  },
+  {
+   "name": "deberta_evidence",
+   "system": "deberta_evidence",
+   "variant": "model_mined",
+   "decoder": "span",
+   "lam": 0.0,
+   "k": null,
+   "encoder": "microsoft/deberta-v3-base",
+   "checkpoint": null,
+   "params_M": 183.834,
+   "n_questions": 9340,
+   "n_windows": 9400,
+   "batch_size": 64,
+   "precision": "bf16",
+   "segment_s": 4.9469,
+   "features_s": 21.7355,
+   "forward_s": 27.1468,
+   "decode_s": 7.0305,
+   "runs_s": {
+    "segment": [
+     4.9477,
+     4.9469,
+     4.9457
+    ],
+    "features": [
+     21.7398,
+     21.7355,
+     21.5031
+    ],
+    "forward": [
+     27.6752,
+     27.1468,
+     26.4429
+    ],
+    "decode": [
+     7.0305,
+     6.9356,
+     7.0458
+    ]
+   },
+   "model_qps": 273.28,
+   "e2e_qps": 153.47,
+   "peak_mem_gb": 3.25
+  },
+  {
+   "name": "deberta_evidence",
+   "system": "deberta_evidence",
+   "variant": "model_mined",
+   "decoder": "joint",
+   "lam": 0.25,
+   "k": null,
+   "encoder": "microsoft/deberta-v3-base",
+   "checkpoint": null,
+   "params_M": 183.834,
+   "n_questions": 9340,
+   "n_windows": 9400,
+   "batch_size": 64,
+   "precision": "bf16",
+   "segment_s": 4.9469,
+   "features_s": 21.7355,
+   "forward_s": 27.1468,
+   "decode_s": 11.5053,
+   "runs_s": {
+    "segment": [
+     4.9477,
+     4.9469,
+     4.9457
+    ],
+    "features": [
+     21.7398,
+     21.7355,
+     21.5031
+    ],
+    "forward": [
+     27.6752,
+     27.1468,
+     26.4429
+    ],
+    "decode": [
+     11.3569,
+     11.5895,
+     11.5053
+    ]
+   },
+   "model_qps": 241.64,
+   "e2e_qps": 142.96,
+   "peak_mem_gb": 3.25
+  },
+  {
+   "name": "deberta_evidence",
+   "system": "deberta_evidence",
+   "variant": "model_mined",
+   "decoder": "sequential",
+   "lam": null,
+   "k": 1,
+   "encoder": "microsoft/deberta-v3-base",
+   "checkpoint": null,
+   "params_M": 183.834,
+   "n_questions": 9340,
+   "n_windows": 9400,
+   "batch_size": 64,
+   "precision": "bf16",
+   "segment_s": 4.9469,
+   "features_s": 21.7355,
+   "forward_s": 27.1468,
+   "decode_s": 11.2957,
+   "runs_s": {
+    "segment": [
+     4.9477,
+     4.9469,
+     4.9457
+    ],
+    "features": [
+     21.7398,
+     21.7355,
+     21.5031
+    ],
+    "forward": [
+     27.6752,
+     27.1468,
+     26.4429
+    ],
+    "decode": [
+     11.2957,
+     11.5559,
+     11.2425
+    ]
+   },
+   "model_qps": 242.96,
+   "e2e_qps": 143.42,
+   "peak_mem_gb": 3.25
+  }
+ ]
+}
