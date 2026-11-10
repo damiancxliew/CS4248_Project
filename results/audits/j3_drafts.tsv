@@ -1,0 +1,314 @@
+qid	item	draft	reason
+56f8574aa6d7ea1400e175a8	G	Y	States ownership passed to the town in 1420.
+56f8574aa6d7ea1400e175a8	N1	P	Same water system, but no date or ownership.
+56f8574aa6d7ea1400e175a8	N2	P	Same system with a date (1290) that could be mistaken for the answer.
+5726e604708984140094d531	G	Y	Names "Square-Block Characters" as sometimes translated tetragraph.
+5726e604708984140094d531	N1	P	About the square shape of Chinese characters, but gives no term.
+573014cc04bcaa1900d77146	G	Y	Says youth migrated looking for construction jobs.
+573014cc04bcaa1900d77146	N1	P	About the same migrants, but their later protests, not why they came.
+573014cc04bcaa1900d77146	N2	P	Oil boom context; a background cause, not the stated reason.
+57303f8d947a6a140053d321	G	Y	Gives inaccuracy of navigation as part of the reason.
+57303f8d947a6a140053d321	N1	E	Incendiary percentages; unrelated to the reason.
+57303f8d947a6a140053d321	N2	P	Mentions unrestricted area attacks but not why.
+56e78a2e00c9c71400d77272	G	Y	Italy's term is ora legale.
+56e78a2e00c9c71400d77272	N1	P	DST terms, but British ones.
+5710de24a58dae1900cd6b09	G	Y	Saggi Politici dated 1783.
+5710de24a58dae1900cd6b09	N1	P	Another Enlightenment work with a year (1764).
+5731f87ae17f3d1400422594	G	Y	Churchill wanted them diverted to Burma.
+5731f87ae17f3d1400422594	N1	E	Japanese invasion proposal; not about the diversion.
+5731f87ae17f3d1400422594	N2	P	The same divisions heading for Singapore, no diversion target.
+5729225a1d04691400779091	G	Y	States the finding with "their own cluster".
+5729225a1d04691400779091	N1	F	Same finding stated with "their own population"; the gold uses populations/clusters interchangeably.
+5729225a1d04691400779091	N2	P	Related population-similarity result, does not give the term.
+5732aeedcc179a14009dac07	G	Y	Pleistocene glaciers depressed land; rose 591 ft.
+5732aeedcc179a14009dac07	N1	P	Land still rising, no period named.
+5732aeedcc179a14009dac07	N2	P	Names the Holocene and a rise in feet; tempting wrong period.
+5731af89e17f3d14004222f7	G	N	Sentence says 3.7 billion was the 2012 figure, but the question asks about 2013: the SQuAD label looks wrong.
+5731af89e17f3d14004222f7	N1	F	Gives the 2013 estimate (5.6 or 4.7 billion), so it answers the question as asked.
+5731af89e17f3d14004222f7	N2	P	YouTube revenue in another year (2007).
+572fc1c9a23a5019007fc990	G	Y	Alliance of mutual self-protection.
+572fc1c9a23a5019007fc990	N1	P	Rome's expansion and inter-state relations, not the alliance type.
+572fc1c9a23a5019007fc990	N2	P	Mentions protection and a Roman alliance; close but no type named.
+572fc1c9a23a5019007fc990	N3	P	"Roman confederacy" could be mistaken for the alliance type.
+5733fb0cd058e614000b66f9	G	Y	Bale sold for £85 million in 2013.
+5733fb0cd058e614000b66f9	N1	P	Another record fee with a £ amount and year.
+5733fb0cd058e614000b66f9	N2	P	About record transfer fees, no amount.
+5733fb0cd058e614000b66f9	N3	P	Another fee (£3 million), different player.
+572a49391d046914007798c5	G	Y	Partitioned between Poland and the Soviet Union.
+572a49391d046914007798c5	N1	F	Same partition in detail: Polish administration and Soviet republics, so the answer can be read off.
+5724e4370ba9f01400d97ba2	G	Y	Victoria's first visit to Ireland in 1849.
+5724e4370ba9f01400d97ba2	N1	P	A first visit, but by the French king, 1844.
+5724e4370ba9f01400d97ba2	N2	P	Mentions Irish nationalists; no visit.
+5724e4370ba9f01400d97ba2	N3	P	Victoria travelling in 1848 to the Isle of Wight.
+56bfa5b3a10cfb14005511fa	G	Y	Forbes reported she was top-earning woman in music.
+56bfa5b3a10cfb14005511fa	N1	P	Another outlet (The New York Times) reporting on her.
+56bfa5b3a10cfb14005511fa	N2	E	Awards list; nothing about earnings or a reporter.
+56bfa5b3a10cfb14005511fa	N3	E	Chart record; not about who reported earnings.
+56e08680231d4119001ac26f	G	Y	US had a much larger air force.
+56e08680231d4119001ac26f	N1	P	US weapons against the Soviet Union; no force type compared.
+56e08680231d4119001ac26f	N2	P	US atomic monopoly; "atomic weapons" could be a wrong answer.
+56e08680231d4119001ac26f	N3	E	Soviet fear of invasion; no military comparison.
+56f71740711bf01900a44934	G	Y	Followed Swiss rejection of the EEA agreement.
+56f71740711bf01900a44934	N1	E	"[citation needed]" is a Wikipedia artefact, not a sentence.
+56f71740711bf01900a44934	N2	P	About the Swiss-EU treaty, but not what was rejected.
+56f71740711bf01900a44934	N3	E	Generic definition of bilateral treaties.
+57268c14708984140094c9a8	G	Y	Marvel acquired Heroes World in late 1994.
+57268c14708984140094c9a8	N1	P	Same distributor with a different year (1997).
+56e6efa9de9d3714000680be	G	Y	The format appealed to women, unlike modern rock.
+56e6efa9de9d3714000680be	N1	E	List of artists.
+56e6efa9de9d3714000680be	N2	P	Compares modern AC with modern rock; no audience.
+572aadc2be1ee31400cb8154	G	Y	Reported to the Brooklyn-based Atlantic MSTS in April 1969.
+572aadc2be1ee31400cb8154	N1	P	Kerry's active duty with 1969 dates.
+572aadc2be1ee31400cb8154	N2	P	About his reassignment, but not where.
+572aadc2be1ee31400cb8154	N3	E	Later Naval Reserve service, different period.
+56ce5a8faab44d1400b886e2	G	Y	Oceans cover about 71% of the globe.
+56ce5a8faab44d1400b886e2	N1	P	About oceans, no percentage.
+56ce5a8faab44d1400b886e2	N2	P	Oceans with a different number (14 °C).
+56ce5a8faab44d1400b886e2	N3	E	Water cycle; unrelated.
+572fbde9947a6a140053cc1e	G	Y	The war dominated the 1990s.
+572fbde9947a6a140053cc1e	N1	P	Time clue (final Soviet years) that could be given as the answer.
+572fbde9947a6a140053cc1e	N2	P	About the unresolved conflict, no date.
+572fbde9947a6a140053cc1e	N3	E	Armenia's current foreign relations.
+5726d965f1498d1400e8ed11	G	Y	Elections with single pro-Soviet candidates, then admission requested.
+5726d965f1498d1400e8ed11	N1	P	USSR annexed Lithuania; "annexation" is a tempting wrong answer.
+5726d965f1498d1400e8ed11	N2	P	NKVD raids on the same countries.
+570e50af0b85d914000d7e0d	G	Y	"Four seasons in one day" is part of local popular culture.
+570e50af0b85d914000d7e0d	N1	P	Melbourne weather (snow), no phrase.
+570e50af0b85d914000d7e0d	N2	P	Describes rapid weather change, but not the phrase.
+572852b53acd2414000df90e	G	Y	In Bosnia and Herzegovina, "Bosnian" was one of the names.
+572852b53acd2414000df90e	N1	P	Mentions 'Bosnian' in a different context.
+572852b53acd2414000df90e	N2	E	General history of South Slavic languages.
+5725f28989a1e219009ac0df	G	Y	Bosporan Kingdom with those peoples under the Spartocids.
+5725f28989a1e219009ac0df	N1	P	Greek colonies in Crimea, no kingdom named.
+5725f28989a1e219009ac0df	N2	P	Names "the Scythian kingdom", a tempting wrong answer.
+572792f3f1498d1400e8fc8f	G	Y	Badly Drawn Boy (2007).
+572792f3f1498d1400e8fc8f	N1	P	TCM Remembers with other years (2012, 2013).
+572792f3f1498d1400e8fc8f	N2	P	TCM Remembers debut year (1994).
+5727b6734b864d1900163b13	G	Y	93% of titanium.
+5727b6734b864d1900163b13	N1	P	Titanium in Sichuan, no percentage.
+5727b6734b864d1900163b13	N2	P	Sichuan's other reserves.
+572802332ca10214002d9b50	G	Y	Vinyl's advantage: direct manipulation.
+572802332ca10214002d9b50	N1	P	DJ techniques on turntables, no reason stated.
+572802332ca10214002d9b50	N2	P	CDJs now have these capabilities.
+572802332ca10214002d9b50	N3	P	Describes manipulating a record without calling it the reason; borderline F.
+5730487aa23a5019007fd071	G	Y	38.8% of tested pregnant women infected.
+5730487aa23a5019007fd071	N1	P	Another percentage about infected people.
+5730487aa23a5019007fd071	N2	P	83% co-infected with HIV; strong numeric distractor.
+5730487aa23a5019007fd071	N3	E	Life expectancy.
+56e02060231d4119001abf3e	G	Y	Success of supplements in the New York World.
+56e02060231d4119001abf3e	N1	P	Early Sunday strips; on topic, no outlet.
+57277ee9f1498d1400e8f9cf	G	Y	Corresponded with botanist Joseph Dalton Hooker.
+57277ee9f1498d1400e8f9cf	N1	P	Wrote to Lyell, another correspondent; strong distractor.
+57277ee9f1498d1400e8f9cf	N2	E	Darwin's general research; no correspondent.
+56e1636ce3433e1400422e5c	G	Y	Melodramas produced by Ross Hunter.
+56e1636ce3433e1400422e5c	N1	P	Names of Universal people (stars).
+56e1636ce3433e1400422e5c	N2	P	Other Universal films with a named star.
+57320ad7e99e3014001e646a	G	Y	Democrats lost control of the House in the 2010 elections.
+57320ad7e99e3014001e646a	N1	P	About a party losing control of the House, no party named.
+57320ad7e99e3014001e646a	N2	P	About the minority party after losing the chair, no party named.
+573163cf497a881900248eba	G	Y	Some vandal removed the gold tesserae.
+573163cf497a881900248eba	N1	P	Same church, build date only.
+573163cf497a881900248eba	N2	P	Same dome mosaic, no mention of removal.
+57269c77f1498d1400e8e4d8	G	Y	Debates lack a clear winner; scoring is subjective.
+57269c77f1498d1400e8e4d8	N1	P	About debates' appeal, not why there is no winner.
+57269c77f1498d1400e8e4d8	N2	E	About athletics and modern life.
+57268d09f1498d1400e8e384	G	Y	Lack of family doctors especially in rural regions.
+57268d09f1498d1400e8e384	N1	P	Health care in Thuringia, no location of shortage.
+57268d09f1498d1400e8e384	N2	P	Rural hospitals closing; "rural towns" is tempting.
+572c83e2f182dd1900d7c7d1	G	Y	45% claimed English ancestry in 1980.
+56faed86f34c681400b0c1b9	G	Y	Pyramidical structures known in Somali as taalo.
+56faed86f34c681400b0c1b9	N1	P	Ancient Somali stone houses, no name.
+56faed86f34c681400b0c1b9	N2	P	Names another structure (Wargaade Wall).
+57336f6e4776f41900660ace	G	Y	Bear Stearns feared to collapse, sold to JP Morgan Chase.
+57336f6e4776f41900660ace	N1	P	Another firm's collapse (Fuld's).
+57336f6e4776f41900660ace	N2	P	List of other affected banks.
+57336f6e4776f41900660ace	N3	P	Other affected firms named.
+5726cc17708984140094d19d	G	Y	Peng Dehuai made commander after Lin Biao refused.
+5726cc17708984140094d19d	N1	P	Names Zhou as Mao's supporter.
+5726cc17708984140094d19d	N2	P	About the Chinese army in Korea, no commander.
+5726cc17708984140094d19d	N3	P	Names Peng, but not as Lin Biao's replacement.
+56d0f47a17492d1400aab699	G	Y	Raised in Chicago.
+56d0f47a17492d1400aab699	N1	E	Debut album; no place.
+56d0f47a17492d1400aab699	N2	E	Later albums; no place.
+56d0f47a17492d1400aab699	N3	E	Fifth album; no place.
+5727e51fff5b5019007d97c0	G	Y	Executive branch responsibilities include submitting the budget.
+5727e51fff5b5019007d97c0	N1	P	Defines the executive branch; "the Governor" is a tempting answer.
+5727e51fff5b5019007d97c0	N2	P	The Governor's powers, nothing about the budget.
+5727d0d5ff5b5019007d95d8	G	Y	Associates share the Dominican charism. Weak support: it does not say charism is what draws people.
+572e84dbcb0c0d14000f122f	G	Y	Greeks were 80.2% of the population (1946 census).
+572e84dbcb0c0d14000f122f	N1	E	British "divide and rule"; no population figure.
+572e84dbcb0c0d14000f122f	N2	E	British tolerance of T.M.T.
+572e84dbcb0c0d14000f122f	N3	E	British stirring up the Turks.
+57292ffa3f37b319004780bf	G	Y	Bohr introduced the reduced Planck constant.
+57292ffa3f37b319004780bf	N1	P	Angular momentum in modern terms; sentence is cut off where a formula was.
+56e16c1ae3433e1400422efb	G	Y	First hydrogen balloon invented in 1783.
+56e16c1ae3433e1400422efb	N1	P	Another hydrogen invention with a year (1852); strong distractor.
+56e16c1ae3433e1400422efb	N2	P	Hydrogen airships, no year.
+5728750eff5b5019007da251	G	Y	The Hephthalites were a nomadic confederation.
+5728750eff5b5019007da251	N1	E	Some were driven out of India; says nothing about what they were.
+5728750eff5b5019007da251	N2	P	About the White Huns' settlement, not their type.
+5733f568d058e614000b6682	G	Y	Interventions in Angola 1992 and Guinea-Bissau 1998.
+5733f568d058e614000b6682	N1	P	Lists peacekeeping missions abroad; strong distractor.
+5733f568d058e614000b6682	N2	P	Two major conflicts; fits "two examples".
+5731e0ad0fdd8d15006c65ef	G	Y	Separation has not denied the political realm a religious dimension.
+5731e0ad0fdd8d15006c65ef	N1	F	Same claim: separation does not mean there is no religious dimension in politics.
+5731e0ad0fdd8d15006c65ef	N2	P	"Civil Religion" is a tempting wrong answer.
+572ff90304bcaa1900d76f85	G	Y	Named in honor of King Charles II of England.
+572ff90304bcaa1900d76f85	N1	P	About Charles Town's location.
+572ff90304bcaa1900d76f85	N2	E	Metro population.
+572ff90304bcaa1900d76f85	N3	P	About Charles Town's size.
+56f815cea6d7ea1400e173a8	G	Y	Lists noble family names including Goštautai.
+56f815cea6d7ea1400e173a8	N1	P	About nobles (bajorai), no family name.
+56f815cea6d7ea1400e173a8	N2	P	"These families" got coats of arms; no names.
+56f815cea6d7ea1400e173a8	N3	E	Training of warriors.
+572947f33f37b31900478206	G	Y	Many white-identifying people have some African ancestors.
+572947f33f37b31900478206	N1	P	About varied ancestry, no specific group.
+572947f33f37b31900478206	N2	P	Interracial relationships; implies but does not state it.
+5730271b04bcaa1900d77255	G	Y	States the second policy: West Midlands arms factories.
+5730271b04bcaa1900d77255	N1	P	Orders against London and harbours.
+5730271b04bcaa1900d77255	N2	P	Sorties against the West Midlands; close but not stated as policy.
+5730271b04bcaa1900d77255	N3	E	Mine counts.
+572fc229b2c2fd1400568405	G	Y	Critical of his handling of the day battle (Battle of Britain Day).
+572fc229b2c2fd1400568405	N1	P	Air Staff's view of Dowding, no battle.
+572fc229b2c2fd1400568405	N2	P	Dowding's responsibility, no battle.
+5728651f4b864d1900164980	G	N	Names the empire but not the 230 BCE coverage; that fact is in another sentence (multi-sentence evidence).
+5728651f4b864d1900164980	N1	P	Sātavāhanas under the Mauryans; "Mauryan" is a tempting answer.
+5728651f4b864d1900164980	N2	F	States the empire covered much of India from 230 BCE (refers to it as "the empire").
+5730e504f6cb411900e2451e	G	Y	Article 7 gives Russian equal status in administration.
+5730e504f6cb411900e2451e	N1	P	Russian-speaking communities, not legal status.
+5730e504f6cb411900e2451e	N2	P	Russian fluency stats.
+5730e504f6cb411900e2451e	N3	P	Russian speakers estimate.
+57262e99271a42140099d70e	G	Y	2001 takeover attempt blocked.
+57262e99271a42140099d70e	N1	P	Shell and Woodside with another year (2014).
+57262e99271a42140099d70e	N2	P	Shareholder vote with a date (2014).
+57291a3e1d04691400779037	G	Y	West Berlin was neither a West German state nor part of one.
+57291a3e1d04691400779037	N1	P	West German states; tempting to pick one.
+57291a3e1d04691400779037	N2	P	Names states (Baden-Württemberg).
+57324d51b9d445190005e9f6	G	N	Names McHenry as chief deputy whip, but "highest appointed position" is stated in another sentence (multi-sentence evidence).
+57324d51b9d445190005e9f6	N1	P	Another whip (John Lewis); strong distractor.
+57324d51b9d445190005e9f6	N2	P	Defines the chief deputy whip, no name.
+57324d51b9d445190005e9f6	N3	F	States the chief deputy whip is the highest appointed Republican position; half of the evidence.
+572f51a8a23a5019007fc52e	G	Y	Marshall Plan appropriated $13.7 billion over five years.
+572f51a8a23a5019007fc52e	N1	P	Other budgets in dollars.
+572f51a8a23a5019007fc52e	N2	P	Other budgets in dollars.
+57304589b2c2fd1400568b44	G	Y	Second: British morale unlikely to break.
+57304589b2c2fd1400568b44	N1	P	Strategic interests of OKL.
+57304589b2c2fd1400568b44	N2	P	Mentions the two considerations without stating them.
+57304589b2c2fd1400568b44	N3	P	OKL's indifference to Directive 23.
+57307a82069b53140083210e	G	Y	Latin translation by Marsilio Ficino.
+57307a82069b53140083210e	N1	P	Another scholar (Pletho) in translation history.
+57307a82069b53140083210e	N2	P	Erasmus' Latin edition; strong distractor.
+56d1071617492d1400aab77f	G	Y	Presenting alongside Mike Myers when he went off script.
+56d1071617492d1400aab77f	N1	P	Another West controversy.
+56d1071617492d1400aab77f	N2	P	The Bush remark itself, but no actor named.
+57335128d058e614000b584e	G	Y	AIG received a premium for the promise.
+57335128d058e614000b584e	N1	P	AIG and CDS, no premium.
+57335128d058e614000b584e	N2	P	AIG insured obligations via CDS.
+57111bd0b654c5140001fb5e	G	Y	Users blew air onto the cartridge connectors.
+57111bd0b654c5140001fb5e	N1	P	Describes the symptom, not the fix.
+57111bd0b654c5140001fb5e	N2	P	Mentions attempts to fix without naming one.
+56f8e48f9e9bad19000a06b0	G	Y	Hondius world map of 1590.
+56f8e48f9e9bad19000a06b0	N1	P	Another map with a year (1670).
+56f8e48f9e9bad19000a06b0	N2	E	Etymology of "east"; no map or year.
+56db6ae2e7c41114004b50bf	G	Y	China established a city named Sansha in the disputed territories.
+56db6ae2e7c41114004b50bf	N1	E	Torch relay protests; not about the disputed area.
+56db6ae2e7c41114004b50bf	N2	P	Names a city (Ho Chi Minh City), a tempting wrong answer.
+56db6ae2e7c41114004b50bf	N3	E	Torch relay route.
+5730c1d7069b531400832311	G	Y	Names electroluminescence in the LED passage. Does not itself say LEDs result from it.
+5730c1d7069b531400832311	N1	P	First LED, but no phenomenon named.
+5730c1d7069b531400832311	N2	E	Where research was published.
+56e7896737bdd419002c40db	G	Y	Second facility known as Archives II.
+56e7896737bdd419002c40db	N1	P	NARA and the university; no facility name.
+56e7896737bdd419002c40db	N2	E	Archaeological site on campus.
+5729684b6aef051400154e35	G	Y	About 2,530 hours of sunshine per year.
+5729684b6aef051400154e35	N1	P	Another Palermo climate number (18.5 °C).
+5729684b6aef051400154e35	N2	E	Snow; not sunshine.
+5729684b6aef051400154e35	N3	P	Palermo's climate type.
+572ec43bdfa6aa1500f8d368	G	Y	In Qushayri's words, nothing left of Moses of Moses.
+572ec43bdfa6aa1500f8d368	N1	P	Moses' annihilation from himself, no author.
+572ec43bdfa6aa1500f8d368	N2	P	Moses' encounter with God, no author.
+56fb76b08ddada1400cd6415	G	Y	Scythian composite bow.
+56fb76b08ddada1400cd6415	N1	P	Another military item (the stirrup).
+56fb76b08ddada1400cd6415	N2	E	General late-Roman military developments.
+572f709d947a6a140053c96a	G	Y	Luftwaffe destroyed Rotterdam centre on 14 May 1940.
+572f709d947a6a140053c96a	N1	P	Another bombing with a year (1939).
+571a7d3f4faf5e1900b8a9e1	G	Y	Life expectancy was only a few months.
+571a7d3f4faf5e1900b8a9e1	N1	E	Insulin production agreement.
+571a7d3f4faf5e1900b8a9e1	N2	P	Insulin therapy history, no life expectancy.
+571a7d3f4faf5e1900b8a9e1	N3	P	About diabetes' cause, no life expectancy.
+56f8a0a89b226e1400dd0cfc	G	Y	Per-capita GDP is one of the lowest in the world.
+56f8a0a89b226e1400dd0cfc	N1	P	Another country statistic (44% speak Crioulo).
+56f8a0a89b226e1400dd0cfc	N2	E	Religions.
+572c010e750c471900ed4c73	G	N	The sentence says Vaishnavism DOES believe in panentheism; the SQuAD question contradicts it (dataset error).
+572c010e750c471900ed4c73	N1	E	"[citation needed]" artefact.
+572c010e750c471900ed4c73	N2	P	Another tradition (Kabbalah) with a panentheistic view.
+572ebf5303f98919007569ec	G	Y	Corruption throughout the oil industry contributed.
+572ebf5303f98919007569ec	N1	P	Another cause (Arab nationalism).
+572ebf5303f98919007569ec	N2	E	Free Officers Movement monitoring.
+572ebf5303f98919007569ec	N3	P	Mentions oil terminals; tempting.
+57319608497a881900249092	G	Y	Released December 25, 2011 ("it" = War Horse).
+57319608497a881900249092	N1	P	War Horse with another date (shot in 2010).
+57319608497a881900249092	N2	P	War Horse reviews, no date.
+5725ecc8ec44d21400f3d75c	G	Y	Succeeded by or ruled alongside Antimachus II.
+5725ecc8ec44d21400f3d75c	N1	P	Names Demetrius and Apollodotus I's rise.
+5725ecc8ec44d21400f3d75c	N2	E	His conquests in Punjab.
+57321d690fdd8d15006c67b3	G	Y	Offensive against Australia achieved little.
+57321d690fdd8d15006c67b3	N1	P	Japanese submarines made little impact overall, but not about Australia; strong distractor.
+57321d690fdd8d15006c67b3	N2	P	Japanese submarine use, not the Australia offensive.
+5728a4674b864d1900164b3d	G	Y	Officially incorporated in 1912.
+5728a4674b864d1900164b3d	N1	P	Alaska with other dates (1890s, 1910s).
+5728a4674b864d1900164b3d	N2	P	"That same year" refers to 1912 without saying it.
+5726c717dd62a815002e9002	G	Y	Raised to the office of vizier (Hamadan is in the surrounding context).
+5726c717dd62a815002e9002	N1	F	Says he ceased to be vizier, so it implies the office; slipped through because the exact answer string "office of vizier" is absent.
+5726c717dd62a815002e9002	N2	E	Works composed in Rey.
+5726c717dd62a815002e9002	N3	P	Restored to "his post", unnamed.
+5731b46ee99e3014001e61e7	G	Y	In 1789 the Constitution was amended to add Article IV Section 10.
+57301295b2c2fd1400568800	G	Y	Military coup in 1980.
+57301295b2c2fd1400568800	N1	E	Casualties of later wars.
+57301295b2c2fd1400568800	N2	P	Military rule after the coup, no year.
+57301295b2c2fd1400568800	N3	P	Other years (2003, 2005).
+572f4f3304bcaa1900d76831	G	Y	Known for special and general relativity.
+572f4f3304bcaa1900d76831	N1	P	His other contributions (statistical mechanics); borderline, since he is also known for these.
+572f4f3304bcaa1900d76831	N2	P	His contributions to quantum mechanics; same borderline.
+5728a3732ca10214002da506	G	Y	At heart a religious institution.
+5728a3732ca10214002da506	N1	P	BYU's mission statement, not institution type.
+57299ee01d0469140077958d	G	Y	Transcribed as Apalchen or Apalachen.
+57299ee01d0469140077958d	N1	P	Says they applied the name, but not what it was.
+57299ee01d0469140077958d	N2	P	Gives the later form "Apalachee"; strong distractor.
+570d77cdb3d812140066d9b9	G	Y	German 1st Army under Steinmetz.
+570d77cdb3d812140066d9b9	N1	P	Commander of the 2nd Army (Prince Friedrich Karl); strong distractor.
+5726a3d5708984140094ccae	G	Y	IATA code MEX.
+5726a3d5708984140094ccae	N1	P	Another airport code (TLC); strong distractor.
+5726a3d5708984140094ccae	N2	P	About the airport's traffic, no code.
+5726a3d5708984140094ccae	N3	E	Airport capacity.
+57265f505951b619008f70d3	G	Y	Inherited the throne aged 18.
+57265f505951b619008f70d3	N1	P	A date about her childhood (1820).
+57265f505951b619008f70d3	N2	E	Her parentage.
+56cdcff062d2951400fa6884	G	Y	Hanshin earthquake killed over 6,000 people.
+56cdcff062d2951400fa6884	N1	E	Fault mechanics quote.
+56cdcff062d2951400fa6884	N2	E	Seismic wave travel.
+56d3867b59d6e4140014663d	G	N	Says season six was second highest-rated, not that its premiere was the most watched.
+56d3867b59d6e4140014663d	N1	E	The "Death Star" nickname.
+56d3867b59d6e4140014663d	N2	P	Finale ratings drop; ratings topic.
+56d3867b59d6e4140014663d	N3	P	Lower-case "season six" slipped past the answer-string exclusion; about its decline, not the premiere.
+57060d1275f01819005e78fd	G	Y	Built to help hotel owners keep sand out of lobbies.
+57060d1275f01819005e78fd	N1	P	About the boardwalk, not why it was built.
+57060d1275f01819005e78fd	N2	P	Boardwalk length, no reason.
+572ca85f750c471900ed4cc0	G	Y	The TBI is the primary state criminal investigative department.
+572ca85f750c471900ed4cc0	N1	P	Another agency acronym (TWRA); strong distractor.
+572ca85f750c471900ed4cc0	N2	P	Another law-enforcement body.
+5730bdb32461fd1900a9d035	G	Y	Five thousand are earlier immigrants or descendants.
+5730bdb32461fd1900a9d035	N1	P	Total Russian-speaking Finns (33,400); strong numeric distractor.
+572fb70e947a6a140053cbd6	G	Y	Remained aware of their past through Homer and the classics.
+572fb70e947a6a140053cbd6	N1	E	Greek science peak.
+572fb70e947a6a140053cbd6	N2	E	Cities within the Diadochi kingdoms.
+5727c090ff5b5019007d9469	G	Y	Pipes correspond 1-to-1 to endpoints.
+5727c090ff5b5019007d9469	N1	P	About endpoints, no correspondence.
+5727c090ff5b5019007d9469	N2	P	Pipes as logical channels.
+5727c090ff5b5019007d9469	N3	P	Links a pipe to an endpoint but not 1-to-1; borderline F.
+570d5c15fed7b91900d45f25	G	Y	Inflamed public opinion in France.
+570d5c15fed7b91900d45f25	N1	P	Cause of the war, not the reaction.
+570d5c15fed7b91900d45f25	N2	P	French fear of encirclement; a tempting reaction.
+572639beec44d21400f3dc63	G	Y	Prescott writes about the masonic world order claim.
+572639beec44d21400f3dc63	N1	P	Zionism and Freemasonry in Iraqi law; no one suggesting the 9/11 claim.
+572639beec44d21400f3dc63	N2	P	Links anti-masonry with antisemitism, but names no one.

@@ -70,7 +70,7 @@ J1 and J2 are on the critical path: Gokul's evidence model, and every run that u
 | J5 | C8 model rankings on AddSent | Gokul (G2) | No |
 | J4 | R6 config, `evidence_model.py` with `neg_mode = random` | Gokul (G4, G1) | **No** |
 | J4 | `train.py`, frozen DeBERTa hyper-parameters | Damian (D1, D3) | **No** |
-| J3 | Dump of model-mined negatives | Gokul (G1) | No. See §8, the plan is inconsistent here |
+| J3 | Dump of model-mined negatives | Gokul (G1) | No. Resolved: Gokul exported J3's 100 train questions from R4 s42 (4 Nov) |
 
 ### Who is waiting on you
 - **J1 (C3)** → Gokul (G1 lexical/random negatives, G2 passage sentences), Clemen (C3 Recall@k ceiling, C8 "wrong sentence" errors), Xin Hui (C3 consumer).
@@ -171,7 +171,7 @@ Full text is in TEAM_TASKS.md §2–§4 and §11. Short version:
 - **Video:** segment 3, 2:45. Evidence labels, negative candidates, negative audit, ranking quality vs. BM25.
 
 ## 8. Open questions (raise these; don't resolve them yourself)
-- **J3 vs. G1 mismatch.** J3 audits "100 random **train** questions", but G1 dumps model-mined negatives for "200 **val** questions". So there are no model-mined negatives for the train questions J3 audits. Don't pick one yourself: ask Damian (plan owner) and Gokul to fix the plan.
+- ~~**J3 vs. G1 mismatch.**~~ Resolved 3–4 Nov: Gokul exported model-mined negatives for J3's 100 train questions (R4 s42, seed 2026), in `outputs/r4_deberta_evidence_s42/mined_negatives_train.jsonl`.
 - **Sentence splitter.** spaCy vs. pysbd is Jun Yip's call and needs a justification in §3.2. The agent may compare them on data and recommend, but Jun Yip decides.
 - **Span-implied ranking.** Clemen's C8 also needs it. Agree with Clemen who computes it, so it isn't built twice.
 
@@ -186,4 +186,4 @@ Status key: ☐ not started · 🟡 in progress / partial (mocked) · 🚧 block
 | J6b | ☐ | |
 | J5 | ☐ | |
 | J4 (R6) | ☐ | |
-| J3 | ☐ | |
+| J3 | 🟡 | In review, PR (link below). `src/qa/eval/negative_audit.py` (blinded sheet, labelling page, counts + exact McNemar), 9 tests. 100 train questions from R4 s42's export; labelled by Jun Yip (10 Nov), LLM drafts shown as suggestions, 28/313 changed. Gold correct 97/100. Plausible / false neg / easy, n = 97 each: mined 68/3/26, lexical 68/5/24, random 54/1/42. Plausible, mined vs random p = 0.038, mined vs lexical p = 1.0 (13:13), lexical vs random p = 0.060. Mined equals lexical on 34 questions. False-negative rate 3% → no change needed (Gokul). `results/audits/j3_counts.json` |
