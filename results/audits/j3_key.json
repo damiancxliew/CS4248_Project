@@ -1,0 +1,1855 @@
+{
+ "56f8574aa6d7ea1400e175a8": {
+  "gold_sent": 2,
+  "items": {
+   "N1": {
+    "sent": 0,
+    "methods": [
+     "lex"
+    ]
+   },
+   "N2": {
+    "sent": 1,
+    "methods": [
+     "mined",
+     "rand"
+    ]
+   }
+  }
+ },
+ "5726e604708984140094d531": {
+  "gold_sent": 1,
+  "items": {
+   "N1": {
+    "sent": 0,
+    "methods": [
+     "mined",
+     "lex",
+     "rand"
+    ]
+   }
+  }
+ },
+ "573014cc04bcaa1900d77146": {
+  "gold_sent": 2,
+  "items": {
+   "N1": {
+    "sent": 3,
+    "methods": [
+     "mined",
+     "rand"
+    ]
+   },
+   "N2": {
+    "sent": 0,
+    "methods": [
+     "lex"
+    ]
+   }
+  }
+ },
+ "57303f8d947a6a140053d321": {
+  "gold_sent": 1,
+  "items": {
+   "N1": {
+    "sent": 4,
+    "methods": [
+     "rand"
+    ]
+   },
+   "N2": {
+    "sent": 0,
+    "methods": [
+     "mined",
+     "lex"
+    ]
+   }
+  }
+ },
+ "56e78a2e00c9c71400d77272": {
+  "gold_sent": 1,
+  "items": {
+   "N1": {
+    "sent": 0,
+    "methods": [
+     "mined",
+     "lex",
+     "rand"
+    ]
+   }
+  }
+ },
+ "5710de24a58dae1900cd6b09": {
+  "gold_sent": 1,
+  "items": {
+   "N1": {
+    "sent": 0,
+    "methods": [
+     "mined",
+     "lex",
+     "rand"
+    ]
+   }
+  }
+ },
+ "5731f87ae17f3d1400422594": {
+  "gold_sent": 1,
+  "items": {
+   "N1": {
+    "sent": 2,
+    "methods": [
+     "rand"
+    ]
+   },
+   "N2": {
+    "sent": 0,
+    "methods": [
+     "mined",
+     "lex"
+    ]
+   }
+  }
+ },
+ "5729225a1d04691400779091": {
+  "gold_sent": 0,
+  "items": {
+   "N1": {
+    "sent": 5,
+    "methods": [
+     "mined",
+     "lex"
+    ]
+   },
+   "N2": {
+    "sent": 1,
+    "methods": [
+     "rand"
+    ]
+   }
+  }
+ },
+ "5732aeedcc179a14009dac07": {
+  "gold_sent": 2,
+  "items": {
+   "N1": {
+    "sent": 8,
+    "methods": [
+     "lex"
+    ]
+   },
+   "N2": {
+    "sent": 1,
+    "methods": [
+     "mined",
+     "rand"
+    ]
+   }
+  }
+ },
+ "5731af89e17f3d14004222f7": {
+  "gold_sent": 3,
+  "items": {
+   "N1": {
+    "sent": 4,
+    "methods": [
+     "mined",
+     "lex"
+    ]
+   },
+   "N2": {
+    "sent": 0,
+    "methods": [
+     "rand"
+    ]
+   }
+  }
+ },
+ "572fc1c9a23a5019007fc990": {
+  "gold_sent": 4,
+  "items": {
+   "N1": {
+    "sent": 2,
+    "methods": [
+     "lex"
+    ]
+   },
+   "N2": {
+    "sent": 3,
+    "methods": [
+     "mined"
+    ]
+   },
+   "N3": {
+    "sent": 6,
+    "methods": [
+     "rand"
+    ]
+   }
+  }
+ },
+ "5733fb0cd058e614000b66f9": {
+  "gold_sent": 3,
+  "items": {
+   "N1": {
+    "sent": 2,
+    "methods": [
+     "mined"
+    ]
+   },
+   "N2": {
+    "sent": 0,
+    "methods": [
+     "lex"
+    ]
+   },
+   "N3": {
+    "sent": 1,
+    "methods": [
+     "rand"
+    ]
+   }
+  }
+ },
+ "572a49391d046914007798c5": {
+  "gold_sent": 0,
+  "items": {
+   "N1": {
+    "sent": 1,
+    "methods": [
+     "mined",
+     "lex",
+     "rand"
+    ]
+   }
+  }
+ },
+ "5724e4370ba9f01400d97ba2": {
+  "gold_sent": 7,
+  "items": {
+   "N1": {
+    "sent": 3,
+    "methods": [
+     "rand"
+    ]
+   },
+   "N2": {
+    "sent": 6,
+    "methods": [
+     "mined"
+    ]
+   },
+   "N3": {
+    "sent": 5,
+    "methods": [
+     "lex"
+    ]
+   }
+  }
+ },
+ "56bfa5b3a10cfb14005511fa": {
+  "gold_sent": 10,
+  "items": {
+   "N1": {
+    "sent": 3,
+    "methods": [
+     "rand"
+    ]
+   },
+   "N2": {
+    "sent": 9,
+    "methods": [
+     "mined"
+    ]
+   },
+   "N3": {
+    "sent": 2,
+    "methods": [
+     "lex"
+    ]
+   }
+  }
+ },
+ "56e08680231d4119001ac26f": {
+  "gold_sent": 3,
+  "items": {
+   "N1": {
+    "sent": 2,
+    "methods": [
+     "lex"
+    ]
+   },
+   "N2": {
+    "sent": 1,
+    "methods": [
+     "mined"
+    ]
+   },
+   "N3": {
+    "sent": 0,
+    "methods": [
+     "rand"
+    ]
+   }
+  }
+ },
+ "56f71740711bf01900a44934": {
+  "gold_sent": 1,
+  "items": {
+   "N1": {
+    "sent": 6,
+    "methods": [
+     "mined"
+    ]
+   },
+   "N2": {
+    "sent": 5,
+    "methods": [
+     "lex"
+    ]
+   },
+   "N3": {
+    "sent": 0,
+    "methods": [
+     "rand"
+    ]
+   }
+  }
+ },
+ "57268c14708984140094c9a8": {
+  "gold_sent": 0,
+  "items": {
+   "N1": {
+    "sent": 2,
+    "methods": [
+     "mined",
+     "lex",
+     "rand"
+    ]
+   }
+  }
+ },
+ "56e6efa9de9d3714000680be": {
+  "gold_sent": 3,
+  "items": {
+   "N1": {
+    "sent": 2,
+    "methods": [
+     "mined",
+     "rand"
+    ]
+   },
+   "N2": {
+    "sent": 0,
+    "methods": [
+     "lex"
+    ]
+   }
+  }
+ },
+ "572aadc2be1ee31400cb8154": {
+  "gold_sent": 1,
+  "items": {
+   "N1": {
+    "sent": 3,
+    "methods": [
+     "lex"
+    ]
+   },
+   "N2": {
+    "sent": 0,
+    "methods": [
+     "mined"
+    ]
+   },
+   "N3": {
+    "sent": 5,
+    "methods": [
+     "rand"
+    ]
+   }
+  }
+ },
+ "56ce5a8faab44d1400b886e2": {
+  "gold_sent": 0,
+  "items": {
+   "N1": {
+    "sent": 1,
+    "methods": [
+     "mined"
+    ]
+   },
+   "N2": {
+    "sent": 4,
+    "methods": [
+     "rand"
+    ]
+   },
+   "N3": {
+    "sent": 2,
+    "methods": [
+     "lex"
+    ]
+   }
+  }
+ },
+ "572fbde9947a6a140053cc1e": {
+  "gold_sent": 2,
+  "items": {
+   "N1": {
+    "sent": 1,
+    "methods": [
+     "mined"
+    ]
+   },
+   "N2": {
+    "sent": 3,
+    "methods": [
+     "lex"
+    ]
+   },
+   "N3": {
+    "sent": 0,
+    "methods": [
+     "rand"
+    ]
+   }
+  }
+ },
+ "5726d965f1498d1400e8ed11": {
+  "gold_sent": 2,
+  "items": {
+   "N1": {
+    "sent": 3,
+    "methods": [
+     "lex"
+    ]
+   },
+   "N2": {
+    "sent": 0,
+    "methods": [
+     "mined",
+     "rand"
+    ]
+   }
+  }
+ },
+ "570e50af0b85d914000d7e0d": {
+  "gold_sent": 2,
+  "items": {
+   "N1": {
+    "sent": 5,
+    "methods": [
+     "rand"
+    ]
+   },
+   "N2": {
+    "sent": 1,
+    "methods": [
+     "mined",
+     "lex"
+    ]
+   }
+  }
+ },
+ "572852b53acd2414000df90e": {
+  "gold_sent": 5,
+  "items": {
+   "N1": {
+    "sent": 6,
+    "methods": [
+     "mined",
+     "lex"
+    ]
+   },
+   "N2": {
+    "sent": 0,
+    "methods": [
+     "rand"
+    ]
+   }
+  }
+ },
+ "5725f28989a1e219009ac0df": {
+  "gold_sent": 1,
+  "items": {
+   "N1": {
+    "sent": 0,
+    "methods": [
+     "mined",
+     "lex"
+    ]
+   },
+   "N2": {
+    "sent": 8,
+    "methods": [
+     "rand"
+    ]
+   }
+  }
+ },
+ "572792f3f1498d1400e8fc8f": {
+  "gold_sent": 4,
+  "items": {
+   "N1": {
+    "sent": 3,
+    "methods": [
+     "mined"
+    ]
+   },
+   "N2": {
+    "sent": 0,
+    "methods": [
+     "lex",
+     "rand"
+    ]
+   }
+  }
+ },
+ "5727b6734b864d1900163b13": {
+  "gold_sent": 7,
+  "items": {
+   "N1": {
+    "sent": 6,
+    "methods": [
+     "mined"
+    ]
+   },
+   "N2": {
+    "sent": 8,
+    "methods": [
+     "lex",
+     "rand"
+    ]
+   }
+  }
+ },
+ "572802332ca10214002d9b50": {
+  "gold_sent": 1,
+  "items": {
+   "N1": {
+    "sent": 2,
+    "methods": [
+     "mined"
+    ]
+   },
+   "N2": {
+    "sent": 5,
+    "methods": [
+     "rand"
+    ]
+   },
+   "N3": {
+    "sent": 4,
+    "methods": [
+     "lex"
+    ]
+   }
+  }
+ },
+ "5730487aa23a5019007fd071": {
+  "gold_sent": 0,
+  "items": {
+   "N1": {
+    "sent": 3,
+    "methods": [
+     "mined"
+    ]
+   },
+   "N2": {
+    "sent": 6,
+    "methods": [
+     "lex"
+    ]
+   },
+   "N3": {
+    "sent": 4,
+    "methods": [
+     "rand"
+    ]
+   }
+  }
+ },
+ "56e02060231d4119001abf3e": {
+  "gold_sent": 1,
+  "items": {
+   "N1": {
+    "sent": 2,
+    "methods": [
+     "mined",
+     "lex",
+     "rand"
+    ]
+   }
+  }
+ },
+ "57277ee9f1498d1400e8f9cf": {
+  "gold_sent": 2,
+  "items": {
+   "N1": {
+    "sent": 1,
+    "methods": [
+     "mined"
+    ]
+   },
+   "N2": {
+    "sent": 0,
+    "methods": [
+     "lex",
+     "rand"
+    ]
+   }
+  }
+ },
+ "56e1636ce3433e1400422e5c": {
+  "gold_sent": 2,
+  "items": {
+   "N1": {
+    "sent": 3,
+    "methods": [
+     "mined"
+    ]
+   },
+   "N2": {
+    "sent": 0,
+    "methods": [
+     "lex",
+     "rand"
+    ]
+   }
+  }
+ },
+ "57320ad7e99e3014001e646a": {
+  "gold_sent": 2,
+  "items": {
+   "N1": {
+    "sent": 0,
+    "methods": [
+     "mined",
+     "lex"
+    ]
+   },
+   "N2": {
+    "sent": 1,
+    "methods": [
+     "rand"
+    ]
+   }
+  }
+ },
+ "573163cf497a881900248eba": {
+  "gold_sent": 1,
+  "items": {
+   "N1": {
+    "sent": 0,
+    "methods": [
+     "mined",
+     "lex"
+    ]
+   },
+   "N2": {
+    "sent": 5,
+    "methods": [
+     "rand"
+    ]
+   }
+  }
+ },
+ "57269c77f1498d1400e8e4d8": {
+  "gold_sent": 4,
+  "items": {
+   "N1": {
+    "sent": 3,
+    "methods": [
+     "lex",
+     "rand"
+    ]
+   },
+   "N2": {
+    "sent": 5,
+    "methods": [
+     "mined"
+    ]
+   }
+  }
+ },
+ "57268d09f1498d1400e8e384": {
+  "gold_sent": 3,
+  "items": {
+   "N1": {
+    "sent": 0,
+    "methods": [
+     "lex"
+    ]
+   },
+   "N2": {
+    "sent": 1,
+    "methods": [
+     "mined",
+     "rand"
+    ]
+   }
+  }
+ },
+ "572c83e2f182dd1900d7c7d1": {
+  "gold_sent": 3,
+  "items": {}
+ },
+ "56faed86f34c681400b0c1b9": {
+  "gold_sent": 0,
+  "items": {
+   "N1": {
+    "sent": 1,
+    "methods": [
+     "mined",
+     "lex"
+    ]
+   },
+   "N2": {
+    "sent": 2,
+    "methods": [
+     "rand"
+    ]
+   }
+  }
+ },
+ "57336f6e4776f41900660ace": {
+  "gold_sent": 2,
+  "items": {
+   "N1": {
+    "sent": 7,
+    "methods": [
+     "lex"
+    ]
+   },
+   "N2": {
+    "sent": 5,
+    "methods": [
+     "mined"
+    ]
+   },
+   "N3": {
+    "sent": 0,
+    "methods": [
+     "rand"
+    ]
+   }
+  }
+ },
+ "5726cc17708984140094d19d": {
+  "gold_sent": 3,
+  "items": {
+   "N1": {
+    "sent": 2,
+    "methods": [
+     "lex"
+    ]
+   },
+   "N2": {
+    "sent": 7,
+    "methods": [
+     "rand"
+    ]
+   },
+   "N3": {
+    "sent": 4,
+    "methods": [
+     "mined"
+    ]
+   }
+  }
+ },
+ "56d0f47a17492d1400aab699": {
+  "gold_sent": 0,
+  "items": {
+   "N1": {
+    "sent": 1,
+    "methods": [
+     "lex"
+    ]
+   },
+   "N2": {
+    "sent": 2,
+    "methods": [
+     "mined"
+    ]
+   },
+   "N3": {
+    "sent": 3,
+    "methods": [
+     "rand"
+    ]
+   }
+  }
+ },
+ "5727e51fff5b5019007d97c0": {
+  "gold_sent": 2,
+  "items": {
+   "N1": {
+    "sent": 0,
+    "methods": [
+     "mined"
+    ]
+   },
+   "N2": {
+    "sent": 1,
+    "methods": [
+     "lex",
+     "rand"
+    ]
+   }
+  }
+ },
+ "5727d0d5ff5b5019007d95d8": {
+  "gold_sent": 0,
+  "items": {}
+ },
+ "572e84dbcb0c0d14000f122f": {
+  "gold_sent": 0,
+  "items": {
+   "N1": {
+    "sent": 4,
+    "methods": [
+     "rand"
+    ]
+   },
+   "N2": {
+    "sent": 6,
+    "methods": [
+     "mined"
+    ]
+   },
+   "N3": {
+    "sent": 5,
+    "methods": [
+     "lex"
+    ]
+   }
+  }
+ },
+ "57292ffa3f37b319004780bf": {
+  "gold_sent": 0,
+  "items": {
+   "N1": {
+    "sent": 3,
+    "methods": [
+     "mined",
+     "lex",
+     "rand"
+    ]
+   }
+  }
+ },
+ "56e16c1ae3433e1400422efb": {
+  "gold_sent": 0,
+  "items": {
+   "N1": {
+    "sent": 1,
+    "methods": [
+     "mined",
+     "lex"
+    ]
+   },
+   "N2": {
+    "sent": 4,
+    "methods": [
+     "rand"
+    ]
+   }
+  }
+ },
+ "5728750eff5b5019007da251": {
+  "gold_sent": 0,
+  "items": {
+   "N1": {
+    "sent": 6,
+    "methods": [
+     "lex"
+    ]
+   },
+   "N2": {
+    "sent": 1,
+    "methods": [
+     "mined",
+     "rand"
+    ]
+   }
+  }
+ },
+ "5733f568d058e614000b6682": {
+  "gold_sent": 2,
+  "items": {
+   "N1": {
+    "sent": 1,
+    "methods": [
+     "mined"
+    ]
+   },
+   "N2": {
+    "sent": 0,
+    "methods": [
+     "lex",
+     "rand"
+    ]
+   }
+  }
+ },
+ "5731e0ad0fdd8d15006c65ef": {
+  "gold_sent": 2,
+  "items": {
+   "N1": {
+    "sent": 0,
+    "methods": [
+     "mined",
+     "lex"
+    ]
+   },
+   "N2": {
+    "sent": 1,
+    "methods": [
+     "rand"
+    ]
+   }
+  }
+ },
+ "572ff90304bcaa1900d76f85": {
+  "gold_sent": 0,
+  "items": {
+   "N1": {
+    "sent": 1,
+    "methods": [
+     "mined"
+    ]
+   },
+   "N2": {
+    "sent": 4,
+    "methods": [
+     "rand"
+    ]
+   },
+   "N3": {
+    "sent": 2,
+    "methods": [
+     "lex"
+    ]
+   }
+  }
+ },
+ "56f815cea6d7ea1400e173a8": {
+  "gold_sent": 2,
+  "items": {
+   "N1": {
+    "sent": 0,
+    "methods": [
+     "mined"
+    ]
+   },
+   "N2": {
+    "sent": 3,
+    "methods": [
+     "lex"
+    ]
+   },
+   "N3": {
+    "sent": 1,
+    "methods": [
+     "rand"
+    ]
+   }
+  }
+ },
+ "572947f33f37b31900478206": {
+  "gold_sent": 4,
+  "items": {
+   "N1": {
+    "sent": 1,
+    "methods": [
+     "lex",
+     "rand"
+    ]
+   },
+   "N2": {
+    "sent": 2,
+    "methods": [
+     "mined"
+    ]
+   }
+  }
+ },
+ "5730271b04bcaa1900d77255": {
+  "gold_sent": 0,
+  "items": {
+   "N1": {
+    "sent": 1,
+    "methods": [
+     "mined"
+    ]
+   },
+   "N2": {
+    "sent": 2,
+    "methods": [
+     "lex"
+    ]
+   },
+   "N3": {
+    "sent": 5,
+    "methods": [
+     "rand"
+    ]
+   }
+  }
+ },
+ "572fc229b2c2fd1400568405": {
+  "gold_sent": 3,
+  "items": {
+   "N1": {
+    "sent": 2,
+    "methods": [
+     "mined",
+     "rand"
+    ]
+   },
+   "N2": {
+    "sent": 0,
+    "methods": [
+     "lex"
+    ]
+   }
+  }
+ },
+ "5728651f4b864d1900164980": {
+  "gold_sent": 0,
+  "items": {
+   "N1": {
+    "sent": 2,
+    "methods": [
+     "mined",
+     "rand"
+    ]
+   },
+   "N2": {
+    "sent": 1,
+    "methods": [
+     "lex"
+    ]
+   }
+  }
+ },
+ "5730e504f6cb411900e2451e": {
+  "gold_sent": 0,
+  "items": {
+   "N1": {
+    "sent": 4,
+    "methods": [
+     "lex"
+    ]
+   },
+   "N2": {
+    "sent": 2,
+    "methods": [
+     "mined"
+    ]
+   },
+   "N3": {
+    "sent": 3,
+    "methods": [
+     "rand"
+    ]
+   }
+  }
+ },
+ "57262e99271a42140099d70e": {
+  "gold_sent": 1,
+  "items": {
+   "N1": {
+    "sent": 0,
+    "methods": [
+     "mined",
+     "lex"
+    ]
+   },
+   "N2": {
+    "sent": 2,
+    "methods": [
+     "rand"
+    ]
+   }
+  }
+ },
+ "57291a3e1d04691400779037": {
+  "gold_sent": 3,
+  "items": {
+   "N1": {
+    "sent": 2,
+    "methods": [
+     "lex"
+    ]
+   },
+   "N2": {
+    "sent": 1,
+    "methods": [
+     "mined",
+     "rand"
+    ]
+   }
+  }
+ },
+ "57324d51b9d445190005e9f6": {
+  "gold_sent": 1,
+  "items": {
+   "N1": {
+    "sent": 4,
+    "methods": [
+     "rand"
+    ]
+   },
+   "N2": {
+    "sent": 0,
+    "methods": [
+     "mined"
+    ]
+   },
+   "N3": {
+    "sent": 2,
+    "methods": [
+     "lex"
+    ]
+   }
+  }
+ },
+ "572f51a8a23a5019007fc52e": {
+  "gold_sent": 3,
+  "items": {
+   "N1": {
+    "sent": 2,
+    "methods": [
+     "mined",
+     "rand"
+    ]
+   },
+   "N2": {
+    "sent": 1,
+    "methods": [
+     "lex"
+    ]
+   }
+  }
+ },
+ "57304589b2c2fd1400568b44": {
+  "gold_sent": 1,
+  "items": {
+   "N1": {
+    "sent": 3,
+    "methods": [
+     "rand"
+    ]
+   },
+   "N2": {
+    "sent": 0,
+    "methods": [
+     "mined"
+    ]
+   },
+   "N3": {
+    "sent": 2,
+    "methods": [
+     "lex"
+    ]
+   }
+  }
+ },
+ "57307a82069b53140083210e": {
+  "gold_sent": 1,
+  "items": {
+   "N1": {
+    "sent": 0,
+    "methods": [
+     "mined"
+    ]
+   },
+   "N2": {
+    "sent": 2,
+    "methods": [
+     "lex",
+     "rand"
+    ]
+   }
+  }
+ },
+ "56d1071617492d1400aab77f": {
+  "gold_sent": 2,
+  "items": {
+   "N1": {
+    "sent": 6,
+    "methods": [
+     "rand"
+    ]
+   },
+   "N2": {
+    "sent": 4,
+    "methods": [
+     "mined",
+     "lex"
+    ]
+   }
+  }
+ },
+ "57335128d058e614000b584e": {
+  "gold_sent": 1,
+  "items": {
+   "N1": {
+    "sent": 2,
+    "methods": [
+     "lex"
+    ]
+   },
+   "N2": {
+    "sent": 0,
+    "methods": [
+     "mined",
+     "rand"
+    ]
+   }
+  }
+ },
+ "57111bd0b654c5140001fb5e": {
+  "gold_sent": 4,
+  "items": {
+   "N1": {
+    "sent": 3,
+    "methods": [
+     "mined",
+     "rand"
+    ]
+   },
+   "N2": {
+    "sent": 6,
+    "methods": [
+     "lex"
+    ]
+   }
+  }
+ },
+ "56f8e48f9e9bad19000a06b0": {
+  "gold_sent": 2,
+  "items": {
+   "N1": {
+    "sent": 0,
+    "methods": [
+     "lex"
+    ]
+   },
+   "N2": {
+    "sent": 1,
+    "methods": [
+     "mined",
+     "rand"
+    ]
+   }
+  }
+ },
+ "56db6ae2e7c41114004b50bf": {
+  "gold_sent": 2,
+  "items": {
+   "N1": {
+    "sent": 3,
+    "methods": [
+     "mined"
+    ]
+   },
+   "N2": {
+    "sent": 0,
+    "methods": [
+     "lex"
+    ]
+   },
+   "N3": {
+    "sent": 1,
+    "methods": [
+     "rand"
+    ]
+   }
+  }
+ },
+ "5730c1d7069b531400832311": {
+  "gold_sent": 0,
+  "items": {
+   "N1": {
+    "sent": 1,
+    "methods": [
+     "mined",
+     "lex"
+    ]
+   },
+   "N2": {
+    "sent": 2,
+    "methods": [
+     "rand"
+    ]
+   }
+  }
+ },
+ "56e7896737bdd419002c40db": {
+  "gold_sent": 0,
+  "items": {
+   "N1": {
+    "sent": 1,
+    "methods": [
+     "lex"
+    ]
+   },
+   "N2": {
+    "sent": 2,
+    "methods": [
+     "mined",
+     "rand"
+    ]
+   }
+  }
+ },
+ "5729684b6aef051400154e35": {
+  "gold_sent": 4,
+  "items": {
+   "N1": {
+    "sent": 3,
+    "methods": [
+     "mined"
+    ]
+   },
+   "N2": {
+    "sent": 5,
+    "methods": [
+     "lex"
+    ]
+   },
+   "N3": {
+    "sent": 0,
+    "methods": [
+     "rand"
+    ]
+   }
+  }
+ },
+ "572ec43bdfa6aa1500f8d368": {
+  "gold_sent": 2,
+  "items": {
+   "N1": {
+    "sent": 3,
+    "methods": [
+     "lex"
+    ]
+   },
+   "N2": {
+    "sent": 1,
+    "methods": [
+     "mined",
+     "rand"
+    ]
+   }
+  }
+ },
+ "56fb76b08ddada1400cd6415": {
+  "gold_sent": 4,
+  "items": {
+   "N1": {
+    "sent": 3,
+    "methods": [
+     "mined",
+     "lex"
+    ]
+   },
+   "N2": {
+    "sent": 0,
+    "methods": [
+     "rand"
+    ]
+   }
+  }
+ },
+ "572f709d947a6a140053c96a": {
+  "gold_sent": 3,
+  "items": {
+   "N1": {
+    "sent": 0,
+    "methods": [
+     "mined",
+     "lex",
+     "rand"
+    ]
+   }
+  }
+ },
+ "571a7d3f4faf5e1900b8a9e1": {
+  "gold_sent": 7,
+  "items": {
+   "N1": {
+    "sent": 6,
+    "methods": [
+     "mined"
+    ]
+   },
+   "N2": {
+    "sent": 3,
+    "methods": [
+     "lex"
+    ]
+   },
+   "N3": {
+    "sent": 0,
+    "methods": [
+     "rand"
+    ]
+   }
+  }
+ },
+ "56f8a0a89b226e1400dd0cfc": {
+  "gold_sent": 3,
+  "items": {
+   "N1": {
+    "sent": 1,
+    "methods": [
+     "rand"
+    ]
+   },
+   "N2": {
+    "sent": 2,
+    "methods": [
+     "mined",
+     "lex"
+    ]
+   }
+  }
+ },
+ "572c010e750c471900ed4c73": {
+  "gold_sent": 1,
+  "items": {
+   "N1": {
+    "sent": 3,
+    "methods": [
+     "rand"
+    ]
+   },
+   "N2": {
+    "sent": 2,
+    "methods": [
+     "mined",
+     "lex"
+    ]
+   }
+  }
+ },
+ "572ebf5303f98919007569ec": {
+  "gold_sent": 0,
+  "items": {
+   "N1": {
+    "sent": 1,
+    "methods": [
+     "lex"
+    ]
+   },
+   "N2": {
+    "sent": 4,
+    "methods": [
+     "rand"
+    ]
+   },
+   "N3": {
+    "sent": 2,
+    "methods": [
+     "mined"
+    ]
+   }
+  }
+ },
+ "57319608497a881900249092": {
+  "gold_sent": 1,
+  "items": {
+   "N1": {
+    "sent": 0,
+    "methods": [
+     "mined",
+     "lex"
+    ]
+   },
+   "N2": {
+    "sent": 4,
+    "methods": [
+     "rand"
+    ]
+   }
+  }
+ },
+ "5725ecc8ec44d21400f3d75c": {
+  "gold_sent": 2,
+  "items": {
+   "N1": {
+    "sent": 0,
+    "methods": [
+     "mined",
+     "lex"
+    ]
+   },
+   "N2": {
+    "sent": 4,
+    "methods": [
+     "rand"
+    ]
+   }
+  }
+ },
+ "57321d690fdd8d15006c67b3": {
+  "gold_sent": 4,
+  "items": {
+   "N1": {
+    "sent": 0,
+    "methods": [
+     "lex"
+    ]
+   },
+   "N2": {
+    "sent": 3,
+    "methods": [
+     "mined",
+     "rand"
+    ]
+   }
+  }
+ },
+ "5728a4674b864d1900164b3d": {
+  "gold_sent": 1,
+  "items": {
+   "N1": {
+    "sent": 0,
+    "methods": [
+     "mined"
+    ]
+   },
+   "N2": {
+    "sent": 3,
+    "methods": [
+     "lex",
+     "rand"
+    ]
+   }
+  }
+ },
+ "5726c717dd62a815002e9002": {
+  "gold_sent": 5,
+  "items": {
+   "N1": {
+    "sent": 10,
+    "methods": [
+     "mined"
+    ]
+   },
+   "N2": {
+    "sent": 1,
+    "methods": [
+     "lex"
+    ]
+   },
+   "N3": {
+    "sent": 7,
+    "methods": [
+     "rand"
+    ]
+   }
+  }
+ },
+ "5731b46ee99e3014001e61e7": {
+  "gold_sent": 0,
+  "items": {}
+ },
+ "57301295b2c2fd1400568800": {
+  "gold_sent": 0,
+  "items": {
+   "N1": {
+    "sent": 2,
+    "methods": [
+     "rand"
+    ]
+   },
+   "N2": {
+    "sent": 1,
+    "methods": [
+     "mined"
+    ]
+   },
+   "N3": {
+    "sent": 3,
+    "methods": [
+     "lex"
+    ]
+   }
+  }
+ },
+ "572f4f3304bcaa1900d76831": {
+  "gold_sent": 0,
+  "items": {
+   "N1": {
+    "sent": 1,
+    "methods": [
+     "mined"
+    ]
+   },
+   "N2": {
+    "sent": 2,
+    "methods": [
+     "lex",
+     "rand"
+    ]
+   }
+  }
+ },
+ "5728a3732ca10214002da506": {
+  "gold_sent": 1,
+  "items": {
+   "N1": {
+    "sent": 0,
+    "methods": [
+     "mined",
+     "lex",
+     "rand"
+    ]
+   }
+  }
+ },
+ "57299ee01d0469140077958d": {
+  "gold_sent": 0,
+  "items": {
+   "N1": {
+    "sent": 2,
+    "methods": [
+     "lex"
+    ]
+   },
+   "N2": {
+    "sent": 1,
+    "methods": [
+     "mined",
+     "rand"
+    ]
+   }
+  }
+ },
+ "570d77cdb3d812140066d9b9": {
+  "gold_sent": 0,
+  "items": {
+   "N1": {
+    "sent": 1,
+    "methods": [
+     "mined",
+     "lex",
+     "rand"
+    ]
+   }
+  }
+ },
+ "5726a3d5708984140094ccae": {
+  "gold_sent": 0,
+  "items": {
+   "N1": {
+    "sent": 6,
+    "methods": [
+     "mined"
+    ]
+   },
+   "N2": {
+    "sent": 1,
+    "methods": [
+     "lex"
+    ]
+   },
+   "N3": {
+    "sent": 4,
+    "methods": [
+     "rand"
+    ]
+   }
+  }
+ },
+ "57265f505951b619008f70d3": {
+  "gold_sent": 2,
+  "items": {
+   "N1": {
+    "sent": 1,
+    "methods": [
+     "mined"
+    ]
+   },
+   "N2": {
+    "sent": 0,
+    "methods": [
+     "lex",
+     "rand"
+    ]
+   }
+  }
+ },
+ "56cdcff062d2951400fa6884": {
+  "gold_sent": 1,
+  "items": {
+   "N1": {
+    "sent": 0,
+    "methods": [
+     "mined",
+     "lex"
+    ]
+   },
+   "N2": {
+    "sent": 3,
+    "methods": [
+     "rand"
+    ]
+   }
+  }
+ },
+ "56d3867b59d6e4140014663d": {
+  "gold_sent": 5,
+  "items": {
+   "N1": {
+    "sent": 2,
+    "methods": [
+     "lex"
+    ]
+   },
+   "N2": {
+    "sent": 4,
+    "methods": [
+     "rand"
+    ]
+   },
+   "N3": {
+    "sent": 3,
+    "methods": [
+     "mined"
+    ]
+   }
+  }
+ },
+ "57060d1275f01819005e78fd": {
+  "gold_sent": 0,
+  "items": {
+   "N1": {
+    "sent": 1,
+    "methods": [
+     "mined"
+    ]
+   },
+   "N2": {
+    "sent": 3,
+    "methods": [
+     "lex",
+     "rand"
+    ]
+   }
+  }
+ },
+ "572ca85f750c471900ed4cc0": {
+  "gold_sent": 2,
+  "items": {
+   "N1": {
+    "sent": 1,
+    "methods": [
+     "mined",
+     "rand"
+    ]
+   },
+   "N2": {
+    "sent": 3,
+    "methods": [
+     "lex"
+    ]
+   }
+  }
+ },
+ "5730bdb32461fd1900a9d035": {
+  "gold_sent": 2,
+  "items": {
+   "N1": {
+    "sent": 1,
+    "methods": [
+     "mined",
+     "lex",
+     "rand"
+    ]
+   }
+  }
+ },
+ "572fb70e947a6a140053cbd6": {
+  "gold_sent": 2,
+  "items": {
+   "N1": {
+    "sent": 5,
+    "methods": [
+     "lex"
+    ]
+   },
+   "N2": {
+    "sent": 1,
+    "methods": [
+     "mined",
+     "rand"
+    ]
+   }
+  }
+ },
+ "5727c090ff5b5019007d9469": {
+  "gold_sent": 2,
+  "items": {
+   "N1": {
+    "sent": 3,
+    "methods": [
+     "rand"
+    ]
+   },
+   "N2": {
+    "sent": 0,
+    "methods": [
+     "lex"
+    ]
+   },
+   "N3": {
+    "sent": 1,
+    "methods": [
+     "mined"
+    ]
+   }
+  }
+ },
+ "570d5c15fed7b91900d45f25": {
+  "gold_sent": 2,
+  "items": {
+   "N1": {
+    "sent": 0,
+    "methods": [
+     "mined",
+     "lex"
+    ]
+   },
+   "N2": {
+    "sent": 1,
+    "methods": [
+     "rand"
+    ]
+   }
+  }
+ },
+ "572639beec44d21400f3dc63": {
+  "gold_sent": 2,
+  "items": {
+   "N1": {
+    "sent": 1,
+    "methods": [
+     "mined",
+     "lex"
+    ]
+   },
+   "N2": {
+    "sent": 0,
+    "methods": [
+     "rand"
+    ]
+   }
+  }
+ }
+}

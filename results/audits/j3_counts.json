@@ -1,0 +1,88 @@
+{
+ "n_questions": 100,
+ "gold_correct": 97,
+ "gold_wrong": [
+  "5731af89e17f3d14004222f7",
+  "5728651f4b864d1900164980",
+  "572c010e750c471900ed4c73"
+ ],
+ "methods": {
+  "mined": {
+   "n": 97,
+   "P": 68,
+   "F": 3,
+   "E": 26
+  },
+  "lex": {
+   "n": 97,
+   "P": 68,
+   "F": 5,
+   "E": 24
+  },
+  "rand": {
+   "n": 97,
+   "P": 54,
+   "F": 1,
+   "E": 42
+  }
+ },
+ "paired_plausible": {
+  "mined_vs_rand": {
+   "n": 97,
+   "only_a": 27,
+   "only_b": 13,
+   "p": 0.0385
+  },
+  "mined_vs_lex": {
+   "n": 97,
+   "only_a": 13,
+   "only_b": 13,
+   "p": 1.0
+  },
+  "lex_vs_rand": {
+   "n": 97,
+   "only_a": 31,
+   "only_b": 17,
+   "p": 0.0595
+  }
+ },
+ "label_meaning": {
+  "P": "plausible distractor",
+  "F": "false negative",
+  "E": "easy/irrelevant"
+ },
+ "llm_draft_agreement": {
+  "n_drafted": 313,
+  "kept": 285,
+  "changed": [
+   "573014cc04bcaa1900d77146 N1: P -> E",
+   "573014cc04bcaa1900d77146 N2: P -> E",
+   "572fc1c9a23a5019007fc990 N1: P -> E",
+   "5724e4370ba9f01400d97ba2 N2: P -> E",
+   "5726d965f1498d1400e8ed11 N2: P -> E",
+   "5725f28989a1e219009ac0df N1: P -> E",
+   "572802332ca10214002d9b50 N1: P -> E",
+   "56e02060231d4119001abf3e N1: P -> E",
+   "573163cf497a881900248eba N2: P -> E",
+   "57268d09f1498d1400e8e384 N1: P -> E",
+   "56faed86f34c681400b0c1b9 N1: P -> E",
+   "5726cc17708984140094d19d N2: P -> E",
+   "5727e51fff5b5019007d97c0 N2: P -> E",
+   "5731e0ad0fdd8d15006c65ef N1: F -> P",
+   "5731e0ad0fdd8d15006c65ef N2: P -> E",
+   "572947f33f37b31900478206 N2: P -> E",
+   "57291a3e1d04691400779037 N1: P -> E",
+   "57324d51b9d445190005e9f6 G: N -> Y",
+   "56d1071617492d1400aab77f N1: P -> E",
+   "57335128d058e614000b584e N2: P -> E",
+   "57111bd0b654c5140001fb5e N1: P -> E",
+   "572f709d947a6a140053c96a N1: P -> E",
+   "5728a4674b864d1900164b3d N2: P -> E",
+   "5726c717dd62a815002e9002 N1: F -> E",
+   "56d3867b59d6e4140014663d G: N -> Y",
+   "5727c090ff5b5019007d9469 N1: P -> E",
+   "570d5c15fed7b91900d45f25 N1: P -> E",
+   "572639beec44d21400f3dc63 N2: P -> E"
+  ]
+ }
+}
