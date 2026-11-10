@@ -5,8 +5,7 @@
 # Rule (fixed before any test run): all three seeds (13, 42, 87) of every system, so test is reported
 # as mean ± std like val, and no seed is ever picked by looking at test. The error analysis, ranking
 # and adversarial scripts use seed 42 (`analysis_seed`). λ is the G3 value in
-# configs/evidence/best.yaml. `k` for the sequential pipelines (R9a, R9b) is set on val only (C3)
-# and stays null until then.
+# configs/evidence/best.yaml. `k` for the sequential pipelines (R9a, R9b) was set on val only (C3).
 #
 # R7 (λ = 0) re-decodes R4's checkpoints, and R9a/R9b re-decode R3/R4 outputs, so none of them has a
 # checkpoint of its own.
@@ -23,7 +22,8 @@ seeds: [13, 42, 87]
 analysis_seed: 42
 decode:
   lam: 0.25      # configs/evidence/best.yaml (G3)
-  k: null        # C3: set on val, then frozen here
+  k: 2           # C3, set on val only: the smallest k whose val F1 is within 0.1 of k = all (R4 seed 42:
+                 # k=1 88.11, k=2 88.33, k=3 88.32, all 88.32 F1). Same k for R9a and R9b.
 
 checkpoints:
   - run_id: r2_bert_span
