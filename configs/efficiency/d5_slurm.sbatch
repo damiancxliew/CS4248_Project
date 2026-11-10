@@ -26,6 +26,7 @@ cd "${SLURM_SUBMIT_DIR:-$(pwd)}"
 export HF_HUB_OFFLINE="${HF_HUB_OFFLINE:-1}"
 export TOKENIZERS_PARALLELISM=false
 export PYTHONUNBUFFERED=1
+export PYTHONUTF8=1  # configs contain non-ASCII (λ, ±); batch jobs may start with an ASCII locale
 export PYTHONPATH="$(pwd)/src${PYTHONPATH:+:$PYTHONPATH}"
 python_bin="${QA_PYTHON:-$( [[ -x .venv/bin/python ]] && echo .venv/bin/python || echo python3 )}"
 expect_gpu="${EXPECT_GPU-MIG 3g.47gb}"

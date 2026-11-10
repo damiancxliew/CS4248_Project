@@ -29,7 +29,10 @@ def timings(tmp_path_factory):
     evidence_cfg["decode"]["lam"] = 0.5
     write_c3(evidence_cfg["data"]["val_file"], root / "c3" / "evidence_val.jsonl")
     systems = {"tiny_span": (span_cfg, ("span",)), "tiny_evidence": (evidence_cfg, efficiency.DECODERS)}
-    return efficiency.measure(systems, repeats=2, device="cpu", log=lambda _: None)
+    out = root / "timings.json"
+    timings = efficiency.measure(systems, repeats=2, device="cpu", log=lambda _: None, out=out)
+    assert json.loads(out.read_text()) == timings  # rewritten after each system
+    return timings
 
 
 def test_one_row_per_decoder_with_every_stage_timed(timings):

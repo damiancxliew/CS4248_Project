@@ -219,11 +219,16 @@ def time_system(name, cfg, decoders, split="val", checkpoint=None, batch_size=64
 
 
 def measure(systems, split="val", checkpoints=None, batch_size=64, repeats=3, limit=None, k=1,
-            device="auto", log=print):
-    """Time every system in ``systems`` ({name: (config path or dict, decoders)})."""
+            device="auto", log=print, out=None):
+    """Time every system in ``systems`` ({name: (config path or dict, decoders)}).
+
+    With ``out``, the timings JSON is rewritten after each system, so a later failure keeps the
+    systems already timed.
+    """
     checkpoints = checkpoints or {}
     resolved = resolve_device(device)
-    rows = []
+    timings = {"meta": _meta(split, resolved, batch_size, repeats, limit), "rows": []}
+    rows = timings["rows"]
     for name, (config, decoders) in systems.items():
         cfg = load_config(ROOT / config) if isinstance(config, (str, Path)) else config
         log(f"timing {name} ({', '.join(decoders)}) on {split}")
@@ -231,8 +236,20 @@ def measure(systems, split="val", checkpoints=None, batch_size=64, repeats=3, li
                             limit, k, device)
         log(f"  {rows[-1]['n_questions']} questions: " + ", ".join(
             f"{r['decoder']} {r['model_qps']} q/s" for r in rows if r["name"] == name))
+        if out:
+            write_timings(timings, out)
+    return timings
+
+
+def write_timings(timings, path):
+    path = Path(path)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps(timings, indent=1) + "\n", encoding="utf-8")
+    return path
+
+
+def _meta(split, resolved, batch_size, repeats, limit):
     return {
-        "meta": {
             "split": split,
             "gpu": device_name(resolved),
             "batch_size": batch_size,
@@ -243,8 +260,6 @@ def measure(systems, split="val", checkpoints=None, batch_size=64, repeats=3, li
             "host": platform.node(),
             "git_sha": git_sha(),
             "date": datetime.datetime.now(datetime.timezone.utc).isoformat(timespec="seconds"),
-        },
-        "rows": rows,
     }
 
 
@@ -254,7 +269,7 @@ def train_hours(runs_dir, system, variant):
     """``(mean, sample std or None, seed count)`` of ``train_gpu_hours`` over the C7 val records."""
     hours = []
     for path in sorted(Path(runs_dir).glob("*.json")):
-        record = json.loads(path.read_text())
+        record = json.loads(path.read_text(encoding="utf-8"))
         if (record.get("system"), record.get("variant"), record.get("split")) == (system, variant, "val") \
                 and record.get("train_gpu_hours") is not None:
             hours.append(record["train_gpu_hours"])
@@ -306,7 +321,7 @@ def write_table(rows, meta, out_dir="results/tables", stem="efficiency"):
     out_dir.mkdir(parents=True, exist_ok=True)
     csv_path, tex_path = out_dir / f"{stem}.csv", out_dir / f"{stem}.tex"
     fields = [key for key in rows[0] if key != "label_tex"]
-    with open(csv_path, "w", newline="") as f:
+    with open(csv_path, "w", newline="", encoding="utf-8") as f:
         writer = csv.DictWriter(f, fieldnames=fields, extrasaction="ignore")
         writer.writeheader()
         writer.writerows(rows)
@@ -332,7 +347,7 @@ def write_table(rows, meta, out_dir="results/tables", stem="efficiency"):
         f"% {meta['split']}, {rows[0]['n_questions']} questions, batch {meta['batch_size']}, "
         f"{meta['gpu']}, median of {meta['repeats']} runs.",
     ]
-    tex_path.write_text("\n".join(lines) + "\n")
+    tex_path.write_text("\n".join(lines) + "\n", encoding="utf-8")
     return csv_path, tex_path
 
 
@@ -374,13 +389,10 @@ def main(argv=None):
     if args.command == "time":
         names = args.systems or [n for n, (cfg, _) in SYSTEMS.items() if (ROOT / cfg).exists()]
         timings = measure({n: SYSTEMS[n] for n in names}, args.split, _parse_checkpoints(args.checkpoint),
-                          args.batch_size, args.repeats, args.limit, args.k, args.device)
-        out = Path(args.out)
-        out.parent.mkdir(parents=True, exist_ok=True)
-        out.write_text(json.dumps(timings, indent=1) + "\n")
-        print(f"timings: {out}")
+                          args.batch_size, args.repeats, args.limit, args.k, args.device, out=args.out)
+        print(f"timings: {write_timings(timings, args.out)}")
     else:
-        timings = json.loads(Path(args.timings).read_text())
+        timings = json.loads(Path(args.timings).read_text(encoding="utf-8"))
         rows = table_rows(timings, args.runs_dir)
         for path in write_table(rows, timings["meta"], args.out_dir):
             print(f"table: {path}")
