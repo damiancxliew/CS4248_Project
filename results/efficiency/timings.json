@@ -7,9 +7,9 @@
   "limit": null,
   "torch": "2.6.0+cu124",
   "transformers": "4.49.0",
-  "host": "xgpi13",
-  "git_sha": "e7fd55c32e235228b7ce6b0dff8febd9291bc916",
-  "date": "2026-11-10T01:38:32+00:00"
+  "host": "xgpi11",
+  "git_sha": "12a03174b4001601a496aca62d76106cce455067",
+  "date": "2026-11-10T02:22:04+00:00"
  },
  "rows": [
   {
@@ -27,9 +27,9 @@
    "batch_size": 64,
    "precision": "bf16",
    "segment_s": 0.0,
-   "features_s": 7.9487,
-   "forward_s": 10.2024,
-   "decode_s": 6.7051,
+   "features_s": 9.695,
+   "forward_s": 10.0397,
+   "decode_s": 6.8194,
    "runs_s": {
     "segment": [
      0.0,
@@ -37,23 +37,23 @@
      0.0
     ],
     "features": [
-     8.0506,
-     7.9184,
-     7.9487
+     9.695,
+     9.5764,
+     9.7788
     ],
     "forward": [
-     10.2024,
-     10.1783,
-     10.2104
+     10.1423,
+     10.0397,
+     9.6039
     ],
     "decode": [
-     6.8094,
-     6.6747,
-     6.7051
+     6.9167,
+     6.8194,
+     6.7937
     ]
    },
-   "model_qps": 552.42,
-   "e2e_qps": 375.76,
+   "model_qps": 554.0,
+   "e2e_qps": 351.73,
    "peak_mem_gb": 1.25
   },
   {
@@ -71,9 +71,9 @@
    "batch_size": 64,
    "precision": "bf16",
    "segment_s": 0.0,
-   "features_s": 8.2728,
-   "forward_s": 26.5627,
-   "decode_s": 7.0685,
+   "features_s": 10.5478,
+   "forward_s": 24.7692,
+   "decode_s": 7.3116,
    "runs_s": {
     "segment": [
      0.0,
@@ -81,23 +81,23 @@
      0.0
     ],
     "features": [
-     8.1718,
-     8.2728,
-     8.2863
+     10.685,
+     10.5478,
+     10.2545
     ],
     "forward": [
-     26.8581,
-     26.4344,
-     26.5627
+     24.7692,
+     24.294,
+     25.1086
     ],
     "decode": [
-     7.1072,
-     7.0685,
-     6.9443
+     7.3116,
+     7.2629,
+     7.3857
     ]
    },
-   "model_qps": 277.72,
-   "e2e_qps": 222.89,
+   "model_qps": 291.14,
+   "e2e_qps": 219.1,
    "peak_mem_gb": 3.25
   },
   {
@@ -114,34 +114,34 @@
    "n_windows": 9400,
    "batch_size": 64,
    "precision": "bf16",
-   "segment_s": 4.9469,
-   "features_s": 21.7355,
-   "forward_s": 27.1468,
-   "decode_s": 7.0305,
+   "segment_s": 4.9438,
+   "features_s": 22.7136,
+   "forward_s": 24.8999,
+   "decode_s": 7.2472,
    "runs_s": {
     "segment": [
-     4.9477,
-     4.9469,
-     4.9457
+     4.9591,
+     4.9438,
+     4.9382
     ],
     "features": [
-     21.7398,
-     21.7355,
-     21.5031
+     22.886,
+     22.7136,
+     22.5807
     ],
     "forward": [
-     27.6752,
-     27.1468,
-     26.4429
+     24.8999,
+     24.9102,
+     24.8778
     ],
     "decode": [
-     7.0305,
-     6.9356,
-     7.0458
+     7.2502,
+     6.952,
+     7.2472
     ]
    },
-   "model_qps": 273.28,
-   "e2e_qps": 153.47,
+   "model_qps": 290.54,
+   "e2e_qps": 156.18,
    "peak_mem_gb": 3.25
   },
   {
@@ -158,34 +158,34 @@
    "n_windows": 9400,
    "batch_size": 64,
    "precision": "bf16",
-   "segment_s": 4.9469,
-   "features_s": 21.7355,
-   "forward_s": 27.1468,
-   "decode_s": 11.5053,
+   "segment_s": 4.9438,
+   "features_s": 22.7136,
+   "forward_s": 24.8999,
+   "decode_s": 11.3012,
    "runs_s": {
     "segment": [
-     4.9477,
-     4.9469,
-     4.9457
+     4.9591,
+     4.9438,
+     4.9382
     ],
     "features": [
-     21.7398,
-     21.7355,
-     21.5031
+     22.886,
+     22.7136,
+     22.5807
     ],
     "forward": [
-     27.6752,
-     27.1468,
-     26.4429
+     24.8999,
+     24.9102,
+     24.8778
     ],
     "decode": [
-     11.3569,
-     11.5895,
-     11.5053
+     11.3012,
+     11.232,
+     11.6564
     ]
    },
-   "model_qps": 241.64,
-   "e2e_qps": 142.96,
+   "model_qps": 258.0,
+   "e2e_qps": 146.26,
    "peak_mem_gb": 3.25
   },
   {
@@ -202,35 +202,79 @@
    "n_windows": 9400,
    "batch_size": 64,
    "precision": "bf16",
-   "segment_s": 4.9469,
-   "features_s": 21.7355,
-   "forward_s": 27.1468,
-   "decode_s": 11.2957,
+   "segment_s": 4.9438,
+   "features_s": 22.7136,
+   "forward_s": 24.8999,
+   "decode_s": 11.1776,
    "runs_s": {
     "segment": [
-     4.9477,
-     4.9469,
-     4.9457
+     4.9591,
+     4.9438,
+     4.9382
     ],
     "features": [
-     21.7398,
-     21.7355,
-     21.5031
+     22.886,
+     22.7136,
+     22.5807
     ],
     "forward": [
-     27.6752,
-     27.1468,
-     26.4429
+     24.8999,
+     24.9102,
+     24.8778
     ],
     "decode": [
-     11.2957,
-     11.5559,
-     11.2425
+     11.1516,
+     11.1776,
+     11.4637
     ]
    },
-   "model_qps": 242.96,
-   "e2e_qps": 143.42,
+   "model_qps": 258.89,
+   "e2e_qps": 146.54,
    "peak_mem_gb": 3.25
+  },
+  {
+   "name": "deberta_large_span",
+   "system": "deberta_large_span_only",
+   "variant": "span_only",
+   "decoder": "span",
+   "lam": 0.0,
+   "k": null,
+   "encoder": "microsoft/deberta-v3-large",
+   "checkpoint": null,
+   "params_M": 434.014,
+   "n_questions": 9340,
+   "n_windows": 9400,
+   "batch_size": 64,
+   "precision": "bf16",
+   "segment_s": 0.0,
+   "features_s": 9.3825,
+   "forward_s": 57.1012,
+   "decode_s": 6.7539,
+   "runs_s": {
+    "segment": [
+     0.0,
+     0.0,
+     0.0
+    ],
+    "features": [
+     9.5788,
+     9.3825,
+     9.3004
+    ],
+    "forward": [
+     57.1602,
+     57.1012,
+     57.0645
+    ],
+    "decode": [
+     7.1167,
+     6.7539,
+     6.7503
+    ]
+   },
+   "model_qps": 146.27,
+   "e2e_qps": 127.53,
+   "peak_mem_gb": 6.45
   }
  ]
 }

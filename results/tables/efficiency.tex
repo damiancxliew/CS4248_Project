@@ -3,11 +3,12 @@
 \toprule
 System & Params (M) & Train GPU-h & Forward (s) & Decode (ms/q) & q/s & q/s (end-to-end) \\
 \midrule
-BERT-base span-only (R2) & 109.5 & 0.14 $\pm$ 0.00 & 10.2 & 0.72 & 552 & 376 \\
-DeBERTa-v3-base span-only (R3) & 183.8 & 0.32 $\pm$ 0.01 & 26.6 & 0.76 & 278 & 223 \\
-Evidence model, $\lambda = 0$ (R7) & 183.8 & 0.33 $\pm$ 0.00 & 27.1 & 0.75 & 273 & 153 \\
-Evidence model, joint (R4) & 183.8 & 0.33 $\pm$ 0.00 & 27.1 & 1.23 & 242 & 143 \\
-Evidence model, rank-then-read & 183.8 & 0.33 $\pm$ 0.00 & 27.1 & 1.21 & 243 & 143 \\
+BERT-base span-only (R2) & 109.5 & 0.14 $\pm$ 0.00 & 10.0 & 0.73 & 554 & 352 \\
+DeBERTa-v3-base span-only (R3) & 183.8 & 0.32 $\pm$ 0.01 & 24.8 & 0.78 & 291 & 219 \\
+Evidence model, $\lambda = 0$ (R7) & 183.8 & 0.33 $\pm$ 0.00 & 24.9 & 0.78 & 291 & 156 \\
+Evidence model, joint (R4) & 183.8 & 0.33 $\pm$ 0.00 & 24.9 & 1.21 & 258 & 146 \\
+Evidence model, rank-then-read & 183.8 & 0.33 $\pm$ 0.00 & 24.9 & 1.20 & 259 & 147 \\
+DeBERTa-v3-large span-only (R8) & 434.0 & 0.81 & 57.1 & 0.72 & 146 & 128 \\
 \bottomrule
 \end{tabular}
 % val, 9340 questions, batch 64, NVIDIA H100 NVL MIG 3g.47gb, median of 3 runs.
