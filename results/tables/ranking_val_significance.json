@@ -1,0 +1,275 @@
+{
+  "note": "Val Recall@1, seed-42 runs, per-question scores from qa.eval.evidence_metrics score --scores-out; R3 = span-implied ranking. Compared with qa.eval.significance.compare_scores (seed 2026).",
+  "comparisons": [
+    {
+      "system_a": "r4_deberta_evidence_s42",
+      "system_b": "r1_bm25",
+      "metric": "recall_at_1",
+      "units": "fraction",
+      "n": 9340,
+      "mean_a": 0.9647751605995717,
+      "mean_b": 0.8062098501070664,
+      "difference": 0.15856531049250536,
+      "difference_direction": "A - B",
+      "seed": 2026,
+      "rng": "PCG64 / SeedSequence.spawn(2)",
+      "bootstrap": {
+        "n_resamples": 10000,
+        "confidence": 0.95,
+        "method": "paired percentile; linear quantiles",
+        "ci": [
+          0.1506423982869379,
+          0.1664882226980728
+        ]
+      },
+      "randomisation": {
+        "n_randomisations": 10000,
+        "alternative": "two-sided",
+        "extreme_count": 0,
+        "tie_tolerance": 3.14000550519252e-16,
+        "p_value": 9.999000099990002e-05,
+        "p_value_formula": "(extreme_count + 1) / (n_randomisations + 1)"
+      }
+    },
+    {
+      "system_a": "r5_deberta_evidence_s42",
+      "system_b": "r1_bm25",
+      "metric": "recall_at_1",
+      "units": "fraction",
+      "n": 9340,
+      "mean_a": 0.964561027837259,
+      "mean_b": 0.8062098501070664,
+      "difference": 0.15835117773019272,
+      "difference_direction": "A - B",
+      "seed": 2026,
+      "rng": "PCG64 / SeedSequence.spawn(2)",
+      "bootstrap": {
+        "n_resamples": 10000,
+        "confidence": 0.95,
+        "method": "paired percentile; linear quantiles",
+        "ci": [
+          0.1506423982869379,
+          0.1663811563169165
+        ]
+      },
+      "randomisation": {
+        "n_randomisations": 10000,
+        "alternative": "two-sided",
+        "extreme_count": 0,
+        "tie_tolerance": 3.143809267161257e-16,
+        "p_value": 9.999000099990002e-05,
+        "p_value_formula": "(extreme_count + 1) / (n_randomisations + 1)"
+      }
+    },
+    {
+      "system_a": "r6_deberta_evidence_s42",
+      "system_b": "r1_bm25",
+      "metric": "recall_at_1",
+      "units": "fraction",
+      "n": 9340,
+      "mean_a": 0.9660599571734475,
+      "mean_b": 0.8062098501070664,
+      "difference": 0.15985010706638117,
+      "difference_direction": "A - B",
+      "seed": 2026,
+      "rng": "PCG64 / SeedSequence.spawn(2)",
+      "bootstrap": {
+        "n_resamples": 10000,
+        "confidence": 0.95,
+        "method": "paired percentile; linear quantiles",
+        "ci": [
+          0.15214132762312635,
+          0.1677730192719486
+        ]
+      },
+      "randomisation": {
+        "n_randomisations": 10000,
+        "alternative": "two-sided",
+        "extreme_count": 0,
+        "tie_tolerance": 3.14000550519252e-16,
+        "p_value": 9.999000099990002e-05,
+        "p_value_formula": "(extreme_count + 1) / (n_randomisations + 1)"
+      }
+    },
+    {
+      "system_a": "r6b_deberta_evidence_s42",
+      "system_b": "r1_bm25",
+      "metric": "recall_at_1",
+      "units": "fraction",
+      "n": 9340,
+      "mean_a": 0.964882226980728,
+      "mean_b": 0.8062098501070664,
+      "difference": 0.15867237687366167,
+      "difference_direction": "A - B",
+      "seed": 2026,
+      "rng": "PCG64 / SeedSequence.spawn(2)",
+      "bootstrap": {
+        "n_resamples": 10000,
+        "confidence": 0.95,
+        "method": "paired percentile; linear quantiles",
+        "ci": [
+          0.15085653104925054,
+          0.16659528907922913
+        ]
+      },
+      "randomisation": {
+        "n_randomisations": 10000,
+        "alternative": "two-sided",
+        "extreme_count": 0,
+        "tie_tolerance": 3.1761412438955226e-16,
+        "p_value": 9.999000099990002e-05,
+        "p_value_formula": "(extreme_count + 1) / (n_randomisations + 1)"
+      }
+    },
+    {
+      "system_a": "r3_deberta_span_s42",
+      "system_b": "r1_bm25",
+      "metric": "recall_at_1",
+      "units": "fraction",
+      "n": 9340,
+      "mean_a": 0.9658458244111349,
+      "mean_b": 0.8062098501070664,
+      "difference": 0.15963597430406853,
+      "difference_direction": "A - B",
+      "seed": 2026,
+      "rng": "PCG64 / SeedSequence.spawn(2)",
+      "bootstrap": {
+        "n_resamples": 10000,
+        "confidence": 0.95,
+        "method": "paired percentile; linear quantiles",
+        "ci": [
+          0.1518201284796574,
+          0.16755888650963596
+        ]
+      },
+      "randomisation": {
+        "n_randomisations": 10000,
+        "alternative": "two-sided",
+        "extreme_count": 0,
+        "tie_tolerance": 3.14000550519252e-16,
+        "p_value": 9.999000099990002e-05,
+        "p_value_formula": "(extreme_count + 1) / (n_randomisations + 1)"
+      }
+    },
+    {
+      "system_a": "r4_deberta_evidence_s42",
+      "system_b": "r3_deberta_span_s42",
+      "metric": "recall_at_1",
+      "units": "fraction",
+      "n": 9340,
+      "mean_a": 0.9647751605995717,
+      "mean_b": 0.9658458244111349,
+      "difference": -0.0010706638115631692,
+      "difference_direction": "A - B",
+      "seed": 2026,
+      "rng": "PCG64 / SeedSequence.spawn(2)",
+      "bootstrap": {
+        "n_resamples": 10000,
+        "confidence": 0.95,
+        "method": "paired percentile; linear quantiles",
+        "ci": [
+          -0.003747323340471092,
+          0.00139186295503212
+        ]
+      },
+      "randomisation": {
+        "n_randomisations": 10000,
+        "alternative": "two-sided",
+        "extreme_count": 4670,
+        "tie_tolerance": 2.8147838568654935e-17,
+        "p_value": 0.46705329467053297,
+        "p_value_formula": "(extreme_count + 1) / (n_randomisations + 1)"
+      }
+    },
+    {
+      "system_a": "r4_deberta_evidence_s42",
+      "system_b": "r5_deberta_evidence_s42",
+      "metric": "recall_at_1",
+      "units": "fraction",
+      "n": 9340,
+      "mean_a": 0.9647751605995717,
+      "mean_b": 0.964561027837259,
+      "difference": 0.00021413276231263382,
+      "difference_direction": "A - B",
+      "seed": 2026,
+      "rng": "PCG64 / SeedSequence.spawn(2)",
+      "bootstrap": {
+        "n_resamples": 10000,
+        "confidence": 0.95,
+        "method": "paired percentile; linear quantiles",
+        "ci": [
+          -0.0014989293361884369,
+          0.0018201284796573877
+        ]
+      },
+      "randomisation": {
+        "n_randomisations": 10000,
+        "alternative": "two-sided",
+        "extreme_count": 8958,
+        "tie_tolerance": 1.1411285906211459e-17,
+        "p_value": 0.8958104189581042,
+        "p_value_formula": "(extreme_count + 1) / (n_randomisations + 1)"
+      }
+    },
+    {
+      "system_a": "r4_deberta_evidence_s42",
+      "system_b": "r6_deberta_evidence_s42",
+      "metric": "recall_at_1",
+      "units": "fraction",
+      "n": 9340,
+      "mean_a": 0.9647751605995717,
+      "mean_b": 0.9660599571734475,
+      "difference": -0.001284796573875803,
+      "difference_direction": "A - B",
+      "seed": 2026,
+      "rng": "PCG64 / SeedSequence.spawn(2)",
+      "bootstrap": {
+        "n_resamples": 10000,
+        "confidence": 0.95,
+        "method": "paired percentile; linear quantiles",
+        "ci": [
+          -0.002890792291220557,
+          0.00032119914346895073
+        ]
+      },
+      "randomisation": {
+        "n_randomisations": 10000,
+        "alternative": "two-sided",
+        "extreme_count": 1499,
+        "tie_tolerance": 1.1030909709337744e-17,
+        "p_value": 0.14998500149985,
+        "p_value_formula": "(extreme_count + 1) / (n_randomisations + 1)"
+      }
+    },
+    {
+      "system_a": "r4_deberta_evidence_s42",
+      "system_b": "r6b_deberta_evidence_s42",
+      "metric": "recall_at_1",
+      "units": "fraction",
+      "n": 9340,
+      "mean_a": 0.9647751605995717,
+      "mean_b": 0.964882226980728,
+      "difference": -0.00010706638115631691,
+      "difference_direction": "A - B",
+      "seed": 2026,
+      "rng": "PCG64 / SeedSequence.spawn(2)",
+      "bootstrap": {
+        "n_resamples": 10000,
+        "confidence": 0.95,
+        "method": "paired percentile; linear quantiles",
+        "ci": [
+          -0.0017130620985010706,
+          0.0014989293361884369
+        ]
+      },
+      "randomisation": {
+        "n_randomisations": 10000,
+        "alternative": "two-sided",
+        "extreme_count": 10000,
+        "tie_tolerance": 1.1221097807774601e-17,
+        "p_value": 1.0,
+        "p_value_formula": "(extreme_count + 1) / (n_randomisations + 1)"
+      }
+    }
+  ]
+}
