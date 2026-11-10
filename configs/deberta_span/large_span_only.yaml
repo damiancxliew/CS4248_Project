@@ -1,0 +1,12 @@
+# R8 (D6 stretch): DeBERTa-v3-large span-only, a scaling check against R3. Owner: Damian.
+#
+# Same as span_only.yaml except the encoder. The D3 setting was tuned on base, so R8 also runs
+# lr 2e-5 at seed 42 (val only) in case large is unstable at 3e-5; the pick follows the D3 rule,
+# highest val F1. Submit with configs/deberta_span/r8_slurm.sbatch.
+
+run_id: r8_deberta_large_span
+system: deberta_large_span_only
+variant: span_only
+
+model:
+  encoder: microsoft/deberta-v3-large
