@@ -118,13 +118,33 @@ def test_ranking_only_run_leaves_answer_metrics_empty(split):
     assert out["adv_at_rank1"] == pytest.approx(100 / 3)  # only b's merged sentence 0 is the distractor
 
 
+def test_span_implied_ranking_scores_distractor_at_rank1(split, tmp_path):
+    # R3 puts its top span in the distractor for a-turk0 only; b-turk0's single (merged) sentence
+    # holds the distractor, so any rank 1 there counts.
+    run = tmp_path / "adv" / "r3_deberta_span_s42"
+    run.mkdir(parents=True)
+    nbest = {q: _top("x", 2 if q == "a-high-conf-turk0" else 0) for q in split.contexts}
+    (run / "addsent.predictions.json").write_text(json.dumps({q: "x" for q in split.contexts}))
+    (run / "addsent.nbest.json").write_text(json.dumps(nbest))
+    assert adv.score_dir(split, run, "", "span")["adv_at_rank1"] == pytest.approx(200 / 3)
+    assert adv.score_dir(split, run, "", None)["adv_at_rank1"] is None
+    rows = adv.table_rows(split, tmp_path / "adv", tmp_path / "bm25",
+                          (("DeBERTa span (R3)", "r3_deberta_span", "", "span"),))
+    assert rows[0]["adv_at_rank1_mean"] == pytest.approx(200 / 3)
+
+
+def test_unknown_ranking_kind_rejected(tmp_path):
+    with pytest.raises(ValueError, match="ranking"):
+        adv.ranking_file(tmp_path, "addsent", True)
+
+
 def test_table_and_tex(split, tmp_path):
     run = tmp_path / "adv" / "r3_deberta_span_s42"
     run.mkdir(parents=True)
     preds = {q: "France" if q.startswith("a") else ("Rome" if q.startswith("b") else "Cats") for q in split.contexts}
     (run / "addsent.predictions.json").write_text(json.dumps(preds))
     (run / "addsent.nbest.json").write_text(json.dumps({q: _top(t, 0) for q, t in preds.items()}))
-    systems = (("DeBERTa span (R3)", "r3_deberta_span", "", False),)
+    systems = (("DeBERTa span (R3)", "r3_deberta_span", "", None),)
     rows = adv.table_rows(split, tmp_path / "adv", tmp_path / "bm25", systems)
     assert len(rows) == 1 and rows[0]["seeds"] == "42" and rows[0]["f1_mean"] == pytest.approx(100.0)
     csv_path, tex_path = adv.write_table(rows, "addsent", tmp_path / "tables")
@@ -138,7 +158,7 @@ def test_figure_from_tables(split, tmp_path):
     preds = {q: "Cats" for q in split.contexts}
     (run / "addsent.predictions.json").write_text(json.dumps(preds))
     (run / "addsent.nbest.json").write_text(json.dumps({q: _top("Cats", 0) for q in preds}))
-    rows = adv.table_rows(split, tmp_path / "adv", tmp_path / "bm25", (("DeBERTa span (R3)", "r3_deberta_span", "", False),))
+    rows = adv.table_rows(split, tmp_path / "adv", tmp_path / "bm25", (("DeBERTa span (R3)", "r3_deberta_span", "", None),))
     csv_path, _ = adv.write_table(rows, "addsent", tmp_path / "tables")
     out = adv.plot_drops({"addsent": adv.read_table(csv_path)}, tmp_path / "fig" / "drop.pdf")
     assert out.is_file() and out.with_suffix(".png").is_file()
