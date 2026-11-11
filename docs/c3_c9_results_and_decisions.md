@@ -9,17 +9,19 @@
 - Hashes come from the shared Drive copies only; not yet compared with the runners' own (Gokul for R4, Jun Yip for R6).
 - lambda = 0.25 (G3, `configs/evidence/best.yaml`); `k = 2` (section 3).
 
-## 2. Trained systems, val F1 (seeds 13 / 42 / 87)
+## 2. Trained systems, val EM and F1 (seeds 13 / 42 / 87)
 
-| System | F1 | Note |
-|---|---|---|
-| R2 BERT-base span-only | 83.10 / 83.42 / 83.47 | mean EM 70.15, F1 83.33 |
-| R3 DeBERTa span-only | 88.36 / 88.32 / 88.48 | |
-| R4 evidence, model-mined negatives | 88.35 / 88.32 / 88.32 | |
-| R5 evidence, no negatives | 88.37 / 88.46 / 88.45 | |
-| R6 evidence, random negatives | 88.50 / 88.34 / 88.39 | mean EM 76.28 ± 0.05, F1 88.41 ± 0.08 |
-| R6b evidence, BM25 negatives | 88.43 / 88.31 / 88.37 | mean EM 76.16 ± 0.02, F1 88.37 ± 0.06 |
-| R7 R4 at lambda = 0 | 88.34 / 88.33 / 88.31 | |
+| System | EM (s13 / s42 / s87) | F1 (s13 / s42 / s87) | Mean EM, F1 (± std) |
+|---|---|---|---|
+| R2 BERT-base span-only | 69.99 / 70.21 / 70.24 | 83.10 / 83.42 / 83.47 | 70.15 ± 0.14, 83.33 ± 0.20 |
+| R3 DeBERTa span-only | 76.21 / 76.26 / 76.35 | 88.36 / 88.32 / 88.48 | 76.27 ± 0.07, 88.39 ± 0.08 |
+| R4 evidence, model-mined negatives | 76.13 / 76.30 / 76.07 | 88.35 / 88.32 / 88.32 | 76.17 ± 0.12, 88.33 ± 0.02 |
+| R5 evidence, no negatives | 76.09 / 76.37 / 76.34 | 88.37 / 88.46 / 88.45 | 76.27 ± 0.15, 88.43 ± 0.05 |
+| R6 evidence, random negatives | 76.34 / 76.23 / 76.27 | 88.50 / 88.34 / 88.39 | 76.28 ± 0.05, 88.41 ± 0.08 |
+| R6b evidence, BM25 negatives | 76.18 / 76.17 / 76.13 | 88.43 / 88.31 / 88.37 | 76.16 ± 0.02, 88.37 ± 0.06 |
+| R7 R4 at lambda = 0 | 76.13 / 76.28 / 76.08 | 88.34 / 88.33 / 88.31 | 76.17 ± 0.11, 88.33 ± 0.01 |
+
+All from the committed val run records in `results/runs/` (sample standard deviation over three seeds).
 
 **Conclusion.** R3 to R7 are within seed noise (about 88.3 to 88.5 F1, about 76.2 EM). Val F1 does not show that evidence-guided training or any negative type helps. Keep section 5.3 claims modest until the ranking metrics (J6) and significance tests are in.
 
