@@ -1,17 +1,21 @@
 #!/usr/bin/env bash
 # Reproduce the test-set results from the frozen checkpoints (C9). The only script that touches test.
 #
-# Usage: bash scripts/run_all.sh data       # check SQuAD files, build val/test splits and C3 evidence
+# Usage: bash scripts/run_all.sh data       # check SQuAD files, fetch AddSent/AddOneSent, build C3 evidence (login node: needs internet)
 #        bash scripts/run_all.sh verify     # sha256 of every checkpoint (6 systems x 3 seeds) in configs/final_checkpoints.yaml
 #        bash scripts/run_all.sh test       # predict + decode + score each frozen checkpoint on test
 #        bash scripts/run_all.sh sequential # R9a (BM25 + R3) and R9b (R4's ranker + reader); needs decode.k
+#        bash scripts/run_all.sh ranking    # Recall@1/3 and MRR on test -> results/tables/ranking_test.*   (J6b)
+#        bash scripts/run_all.sh adversarial # AddSent/AddOneSent for every system -> results/tables/adversarial_*, figure   (J5)
 #        bash scripts/run_all.sh errors     # C8 error analysis of R3 (span-implied) and R4 (C8 ranking), seed 42
+#        bash scripts/run_all.sh efficiency # efficiency table from the committed timings (D5; timing itself: configs/efficiency/d5_slurm.sbatch)
 #        bash scripts/run_all.sh tables     # results/tables/test/*.csv|tex from the test records
-#        bash scripts/run_all.sh all        # data, verify, test, sequential, errors, tables
+#        bash scripts/run_all.sh all        # data, verify, test, sequential, ranking, adversarial, errors, efficiency, tables
 #
-# Needs a GPU for `test` (same cluster setup as the training sbatch files; run it on a compute node).
-# Not wired in yet (owner): ranking metrics on test (Jun Yip, J6b), adversarial (J5), significance
-# (table owners), efficiency (Damian, D5). `all` lists them at the end so nothing is silently missing.
+# Needs a GPU for `test` and `adversarial` (same cluster setup as the training sbatch files; run them
+# on a compute node, e.g. via configs/final_test.sbatch). `data` needs internet, so run it on a login node first.
+# Not wired in: significance tests on the test records (Xin Hui's `qa.eval.significance` needs
+# per-question score files that no stage writes yet). `all` says so at the end.
 # QA_PYTHON may select a Python executable.
 set -euo pipefail
 
@@ -58,6 +62,12 @@ cmd_data() {
     "$qa_python" -m qa.data.squad_io prepare
     "$qa_python" -m qa.data.evidence_labels --input data/processed/val.json --split val
     "$qa_python" -m qa.data.evidence_labels --input data/raw/dev-v1.1.json --split test
+    if [[ ! -f data/processed/addsent.json || ! -f data/processed/addonesent.json ]]; then
+        bash scripts/download_data.sh --source codalab  # AddSent / AddOneSent, evaluation only
+    fi
+    for split in addsent addonesent; do
+        "$qa_python" -m qa.data.evidence_labels --input "data/processed/$split.json" --split "$split"
+    done
 }
 
 cmd_verify() {
@@ -165,6 +175,47 @@ cmd_errors() {  # seed-42 outputs only (analysis_seed), like the ranking and adv
         --predictions "$dir/test.joint_lam${lam}.predictions.json" --nbest "$dir/test.joint_lam${lam}.nbest.json"
 }
 
+cmd_ranking() {
+    "$qa_python" -m qa.baselines.bm25_ranker --split test --allow-test
+    "$qa_python" -m qa.eval.evidence_metrics table --split test --allow-test
+}
+
+# Every system and seed on AddSent / AddOneSent. Inputs for qa.eval.adversarial and, through
+# --output-dir, for the ranking tables on the same splits. R7 is R4's logits decoded at lambda 0.
+cmd_adversarial() {
+    local lam run_id kind seed checkpoint record sha split out
+    lam="$(manifest_value decode.lam)"
+    while read -r run_id kind seed checkpoint record sha; do
+        for split in addsent addonesent; do
+            out="outputs/adversarial/${run_id}_s${seed}"
+            "$qa_python" -m qa.predict --checkpoint "$checkpoint" --split "$split" \
+                --data-file "data/processed/$split.json" --evidence "data/processed/evidence_$split.jsonl" \
+                --out-dir "$out"
+            if [[ "$kind" == "evidence" ]]; then
+                "$qa_python" -m qa.decoding.evidence_decoder --logits "$out/$split.logits.npz" \
+                    --evidence "data/processed/evidence_$split.jsonl" --data-file "data/processed/$split.json" \
+                    --lam "$lam" --out-dir "$out"
+                if [[ "$run_id" == "r4_deberta_evidence" ]]; then
+                    "$qa_python" -m qa.decoding.evidence_decoder --logits "$out/$split.logits.npz" \
+                        --evidence "data/processed/evidence_$split.jsonl" --data-file "data/processed/$split.json" \
+                        --lam 0 --out-dir "outputs/adversarial/r7_deberta_evidence_s${seed}"
+                fi
+            fi
+        done
+    done < <(entries)
+    for split in addsent addonesent; do
+        "$qa_python" -m qa.baselines.bm25_ranker --split "$split"                              # outputs/r1_bm25
+        "$qa_python" -m qa.baselines.bm25_ranker --split "$split" --out-dir outputs/adversarial
+        "$qa_python" -m qa.eval.adversarial table --split "$split"
+        "$qa_python" -m qa.eval.evidence_metrics table --split "$split" --output-dir outputs/adversarial
+    done
+    "$qa_python" -m qa.eval.adversarial figure
+}
+
+cmd_efficiency() {
+    "$qa_python" -m qa.eval.efficiency table
+}
+
 cmd_tables() {
     "$qa_python" scripts/make_tables.py --runs-dir "$test_runs" --out-dir results/tables/test
     "$qa_python" scripts/make_tables.py --literature --out-dir results/tables
@@ -175,12 +226,14 @@ case "${1:-}" in
     verify) cmd_verify ;;
     test) cmd_test ;;
     sequential) cmd_sequential ;;
+    ranking) cmd_ranking ;;
+    adversarial) cmd_adversarial ;;
     errors) cmd_errors ;;
+    efficiency) cmd_efficiency ;;
     tables) cmd_tables ;;
     all)
-        cmd_data; cmd_test; cmd_sequential; cmd_errors; cmd_tables
-        echo "Not wired in yet: ranking metrics, adversarial, significance, efficiency" \
-             "(see the header of this script)." >&2
+        cmd_data; cmd_test; cmd_sequential; cmd_ranking; cmd_adversarial; cmd_errors; cmd_efficiency; cmd_tables
+        echo "Not wired in: significance tests on the test records (see the header of this script)." >&2
         ;;
-    *) sed -n '2,11p' "$0" >&2; exit 2 ;;
+    *) sed -n '2,22p' "$0" >&2; exit 2 ;;
 esac
