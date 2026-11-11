@@ -29,7 +29,8 @@
 # official script on OUTPUT_DIR/<run_id>_s42's val answers, through qa.eval.significance (X3), and
 # Recall@1 from J6's ranking_val_significance.json. Writes TABLES_DIR/ablations_val.{csv,tex},
 # ablations_val_macros.tex (the numbers section 5.2 quotes) and ablations_val_significance.json; a
-# row whose seed-42 answers are missing is marked pending.
+# row whose seed-42 answers are missing is marked pending. The CSV and macros also carry each row's
+# test means, read from RESULTS_DIR/test/ (C9) and J6's ranking_test.csv; the test set is not rescored.
 set -euo pipefail
 
 repo_root="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/../.." && pwd)"
@@ -235,13 +236,13 @@ from qa.eval.significance import compare_scores
 results_dir, output_dir, tables_dir = (Path(arg) for arg in sys.argv[1:4])
 SEEDS, SEED, ALPHA, BASE, BM25 = (13, 42, 87), 42, 0.01, "r4_deberta_evidence", "r1_bm25"
 ROWS = (  # TEAM_TASKS G5: full vs. -ranking vs. -negatives vs. random vs. lexical vs. -evidence decoding
-    (BASE, "Full model (R4)", "Rfour"),  # (run_id, label, LaTeX macro tag)
-    ("r3_deberta_span", "Span-only (R3)", "Rthree"),
-    ("r5_deberta_evidence", "No negatives (R5)", "Rfive"),
-    ("r6_deberta_evidence", "Random negatives (R6)", "Rsix"),
-    ("r6b_deberta_evidence", "Lexical negatives (R6b)", "Rsixb"),
-    ("r7_deberta_evidence", "No evidence decoding (R7)", "Rseven"),
-    (BM25, "BM25 (R1)", "Rone"),  # a ranker with no reader: ranking columns only
+    (BASE, "R4 full model", "Rfour"),  # (run_id, label as in the paper's tables, LaTeX macro tag)
+    ("r3_deberta_span", "R3 span-only", "Rthree"),
+    ("r5_deberta_evidence", "R5 no negatives", "Rfive"),
+    ("r6_deberta_evidence", "R6 random negatives", "Rsix"),
+    ("r6b_deberta_evidence", "R6b lexical negatives", "Rsixb"),
+    ("r7_deberta_evidence", "R7 evidence weight 0", "Rseven"),
+    (BM25, "R1 BM25 ranker", "Rone"),  # a ranker with no reader: ranking columns only
 )
 RANKING_FROM = {"r7_deberta_evidence": BASE}  # R7 re-decodes R4's models, so it ranks as R4 does
 METRICS = ("em", "f1", "recall_at_1", "mrr")
@@ -324,7 +325,8 @@ rows, f1_tests, changed = [], [], {}
 for run_id, label, _ in ROWS:
     row = {"system": label, "run_id": run_id, "seeds": "", "n": None, "ranking_from": None,
            "f1_test": "n/a", **{f"{m}_{s}": None for m in METRICS for s in ("mean", "std")},
-           **{f"{m}_{s}": None for m in ("f1", "recall_at_1") for s in ("diff", "ci_low", "ci_high", "p")}}
+           **{f"{m}_{s}": None for m in ("f1", "recall_at_1") for s in ("diff", "ci_low", "ci_high", "p")},
+           **{f"test_{m}_{s}": None for m in METRICS for s in ("mean", "std")}}
     if run_id != BM25:
         recs = records(run_id)
         row.update(seeds=" ".join(map(str, SEEDS)), n=recs[SEED]["n"])
@@ -366,6 +368,31 @@ for run_id, label, _ in ROWS:
                    recall_at_1_ci_high=high, recall_at_1_p=test["randomisation"]["p_value"])
     rows.append(row)
 
+# Test (official dev, C9's frozen checkpoints): the same rows, so section 5.2 can say whether the val
+# pattern holds. Read only from the committed records and J6's ranking_test.csv; nothing is rescored.
+test_ranking_file = tables_dir / "ranking_test.csv"
+test_ranking = {}
+if test_ranking_file.is_file():
+    with test_ranking_file.open(newline="") as stream:
+        test_ranking = {row["run_id"]: row for row in csv.DictReader(stream)}
+for row in rows:
+    found = {}
+    for path in (results_dir / "test").glob(f"{row['run_id']}_s*_test.json"):
+        record = json.loads(path.read_text())
+        if record["split"] == "test":
+            found[record["seed"]] = record
+    if sorted(found) == list(SEEDS):
+        for metric, field in (("em", "exact"), ("f1", "f1")):
+            values = [found[seed][field] for seed in SEEDS]
+            row[f"test_{metric}_mean"], row[f"test_{metric}_std"] = mean(values), stdev(values)
+    source = RANKING_FROM.get(row["run_id"], row["run_id"])
+    if source in test_ranking:
+        for metric in ("recall_at_1", "mrr"):
+            row[f"test_{metric}_mean"] = number(test_ranking[source][f"{metric}_mean"])
+            row[f"test_{metric}_std"] = number(test_ranking[source][f"{metric}_std"])
+if not any(row["test_f1_mean"] is not None for row in rows):
+    print(f"No test records under {results_dir}/test: test macros left out", file=sys.stderr)
+
 tables_dir.mkdir(parents=True, exist_ok=True)
 csv_path, tex_path = tables_dir / "ablations_val.csv", tables_dir / "ablations_val.tex"
 json_path = tables_dir / "ablations_val_significance.json"
@@ -381,7 +408,7 @@ def spread(row, metric):
     value, std = row[f"{metric}_mean"], row[f"{metric}_std"]
     if value is None:
         return "--"
-    return f"{value:.2f}" + ("" if std is None else f" $\\pm$ {std:.2f}")
+    return f"{value:.2f}" + ("" if std is None else f" ({std:.2f})")  # mean (std), as in the paper's other tables
 
 
 def signed(value):
@@ -392,22 +419,23 @@ def p_text(p):  # math mode, after the p: $p\ablRfivePFOne$ -> p = 0.17
     return "<0.001" if p < 0.001 else f"={p:.3f}" if p < 0.01 else f"={p:.2f}"
 
 
-def delta(row, metric):
-    value, p = row[f"{metric}_diff"], row[f"{metric}_p"]
-    if value is None:
-        return "pending" if metric == "f1" and row["f1_test"] == "pending" else "--"
-    return signed(value) + ("$^{*}$" if p < ALPHA else "")
+def mark(row, metric):
+    """$^{*}$ if the seed-42 test against R4 has p < ALPHA, $^{\\dagger}$ if the F1 test is pending."""
+    if metric == "f1" and row["f1_test"] == "pending":
+        return "$^{\\dagger}$"
+    p = row[f"{metric}_p"]
+    return "$^{*}$" if p is not None and p < ALPHA else ""
 
 
-lines = [
-    "% Generated by configs/ablations/run_ablation.sh table; val, percent. EM, F1, Recall@1 and MRR: "
-    "mean $\\pm$ sample std over seeds 13, 42 and 87. $\\Delta$: seed 42 minus the full model (R4), "
-    f"in points; $^{{*}}$ p < {ALPHA:g}, paired randomisation test (qa.eval.significance). R3's ranking is "
-    "span-implied; R7 re-decodes R4's models, so its ranking is R4's.",
-    r"\begin{tabular}{lcccccc}", r"\hline",
-    r"System & EM & F1 & $\Delta$F1 & Recall@1 & MRR & $\Delta$R@1 \\", r"\hline",
-    *(f"{row['system']} & {spread(row, 'em')} & {spread(row, 'f1')} & {delta(row, 'f1')} & "
-      f"{spread(row, 'recall_at_1')} & {spread(row, 'mrr')} & {delta(row, 'recall_at_1')} \\\\" for row in rows),
+lines = [  # one ACL column: EM, MRR, the seed-42 differences and the test means are in the CSV and macros
+    "% Generated by configs/ablations/run_ablation.sh table; val, percent. F1 and Recall@1: mean (sample "
+    f"std) over seeds 13, 42 and 87. $^{{*}}$: differs from the full model (R4) on seed 42, p < {ALPHA:g}, "
+    "paired randomisation test (qa.eval.significance); $^{\\dagger}$: that F1 test is pending. R3's ranking "
+    "is span-implied; R7 re-decodes R4's models, so its ranking is R4's.",
+    r"\begin{tabular}{lcc}", r"\hline",
+    r"System & F1 & Recall@1 \\", r"\hline",
+    *(f"{row['system']} & {spread(row, 'f1')}{mark(row, 'f1')} & "
+      f"{spread(row, 'recall_at_1')}{mark(row, 'recall_at_1')} \\\\" for row in rows),
     r"\hline", r"\end{tabular}",
 ]
 tex_path.write_text("\n".join(lines) + "\n")
@@ -426,6 +454,22 @@ for row, (_, _, tag) in zip(rows, ROWS):
             macros[f"{tag}P{name}"] = p_text(row[f"{metric}_p"])
     if row["run_id"] in changed:
         macros[f"{tag}ChangedAnswers"] = f"{changed[row['run_id']]:,}".replace(",", "{,}")
+em_means = [row["em_mean"] for row in rows if row["em_mean"] is not None]
+macros["EmMin"], macros["EmMax"] = f"{min(em_means):.2f}", f"{max(em_means):.2f}"
+# Test: \ablTest<tag>FOne / \ablTest<tag>ROne, plus how far any ablation lands from R4.
+tested = [row for row in rows if row["test_f1_mean"] is not None]
+for row, (_, _, tag) in zip(rows, ROWS):
+    if row["test_f1_mean"] is not None:
+        macros[f"Test{tag}FOne"] = f"{row['test_f1_mean']:.2f}"
+    if row["test_recall_at_1_mean"] is not None and row["run_id"] not in RANKING_FROM:
+        macros[f"Test{tag}ROne"] = f"{row['test_recall_at_1_mean']:.2f}"
+if rows[0]["test_f1_mean"] is not None and len(tested) > 1:
+    macros["TestMaxAbsDiffFOne"] = f"{max(abs(r['test_f1_mean'] - rows[0]['test_f1_mean']) for r in tested[1:]):.2f}"
+    macros["TestMaxStdFOne"] = f"{max(r['test_f1_std'] for r in tested):.2f}"
+rankers = [row["test_recall_at_1_mean"] for row in rows  # the trained rankers, not R3's implied one or BM25
+           if row["run_id"] not in (BM25, "r3_deberta_span", *RANKING_FROM) and row["test_recall_at_1_mean"] is not None]
+if rankers:
+    macros["TestROneMin"], macros["TestROneMax"] = f"{min(rankers):.2f}", f"{max(rankers):.2f}"
 macros_path = tables_dir / "ablations_val_macros.tex"
 macros_path.write_text("% Generated by configs/ablations/run_ablation.sh table: numbers quoted in section 5.2.\n"
                        + "".join(f"\\newcommand{{\\abl{name}}}{{{value}}}\n" for name, value in macros.items()))
@@ -457,7 +501,7 @@ for path in (csv_path, tex_path, macros_path, json_path):
 EOF
         ;;
     *)
-        sed -n '2,32p' "$0" | sed 's/^# \{0,1\}//'
+        sed -n '2,33p' "$0" | sed 's/^# \{0,1\}//'
         exit 2
         ;;
 esac

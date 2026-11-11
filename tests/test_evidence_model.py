@@ -498,7 +498,17 @@ def _g5_inputs(tmp_path):
         elif lam is None:  # span-only: only its n-best, best first
             (run_dir / "val.nbest.json").write_text(json.dumps(
                 {qid: [{"text": text, "score": 1.0}, {"text": "other", "score": 0.5}] for qid, text in answers.items()}))
+    (records / "test").mkdir()  # C9 test records for R4 and R5 only; the other rows have none
+    for run_id, f1s in (("r4_deberta_evidence", (93.4, 93.5, 93.6)), ("r5_deberta_evidence", (93.6, 93.7, 93.9))):
+        for seed, f1 in zip((13, 42, 87), f1s):
+            (records / "test" / f"{run_id}_s{seed}_test.json").write_text(json.dumps(
+                {"run_id": f"{run_id}_s{seed}_test", "split": "test", "seed": seed, "exact": f1 - 6, "f1": f1}))
     tables.mkdir()
+    (tables / "ranking_test.csv").write_text(
+        "system,run_id,seeds,n,recall_at_1_mean,recall_at_1_std,recall_at_3_mean,recall_at_3_std,mrr_mean,mrr_std\n"
+        "BM25 (R1),r1_bm25,,50,79.0,,96.0,,87.0,\nSpan-implied (R3),r3_deberta_span,,50,96.0,0.1,99.0,,97.0,\n"
+        "Full model (R4),r4_deberta_evidence,,50,95.8,0.1,99.0,,97.0,\n"
+        "No negatives (R5),r5_deberta_evidence,,50,95.6,0.1,99.0,,97.0,\n")
     ranking_rows = [("BM25 (R1)", "r1_bm25", "80.0", ""), ("Span-implied (R3)", "r3_deberta_span", "96.6", "0.1"),
                     ("Full model (R4)", "r4_deberta_evidence", "96.4", "0.1"),
                     ("No negatives (R5)", "r5_deberta_evidence", "96.3", "0.1"),
@@ -520,7 +530,7 @@ def _g5_inputs(tmp_path):
 def test_g5_table_rows_means_and_stars(tmp_path):
     env, outputs, _, tables = _g5_inputs(tmp_path)
     run = subprocess.run(["bash", ABLATION_RUNNER, "table"], capture_output=True, text=True, check=True, env=env)
-    assert "Lexical negatives (R6b): no" in run.stderr and "pending" in run.stderr
+    assert "R6b lexical negatives: no" in run.stderr and "pending" in run.stderr
 
     with (tables / "ablations_val.csv").open() as stream:
         rows = {row["run_id"]: row for row in csv.DictReader(stream)}
@@ -537,20 +547,28 @@ def test_g5_table_rows_means_and_stars(tmp_path):
     assert rows["r7_deberta_evidence"]["ranking_from"] == "r4_deberta_evidence"
     assert float(rows["r1_bm25"]["recall_at_1_diff"]) == pytest.approx(-20.0)      # stored as R4 - BM25
     assert rows["r1_bm25"]["f1_mean"] == ""
+    assert float(rows["r5_deberta_evidence"]["test_f1_mean"]) == pytest.approx(93.7333, abs=1e-3)
+    assert rows["r6_deberta_evidence"]["test_f1_mean"] == ""                        # no test records
+    assert float(rows["r7_deberta_evidence"]["test_recall_at_1_mean"]) == pytest.approx(95.8)  # R4's ranking
 
     tex = {line.split(" & ")[0]: line for line in (tables / "ablations_val.tex").read_text().splitlines()}
-    assert "& +100.00$^{*}$ &" in tex["No negatives (R5)"]
-    assert "& 0.00 &" in tex["Random negatives (R6)"] and "$^{*}$" not in tex["Random negatives (R6)"]
-    assert "& pending &" in tex["Lexical negatives (R6b)"]
-    assert "& = R4 & = R4 &" in tex["No evidence decoding (R7)"]
-    assert tex["BM25 (R1)"].endswith(r"$-$20.00$^{*}$ \\")
+    assert tex["R5 no negatives"].startswith(r"R5 no negatives & 101.00 (1.00)$^{*}$ & ")
+    assert "$^{*}$" not in tex["R6 random negatives"]
+    assert r"(1.00)$^{\dagger}$ &" in tex["R6b lexical negatives"]                  # its F1 test is pending
+    assert tex["R7 evidence weight 0"].endswith(r"& = R4 \\")
+    assert tex["R1 BM25 ranker"] == r"R1 BM25 ranker & -- & 80.00$^{*}$ \\"
     macros = (tables / "ablations_val_macros.tex").read_text()
     for line in (r"\newcommand{\ablRfiveDeltaFOne}{+100.00}", r"\newcommand{\ablRfivePFOne}{<0.001}",
                  r"\newcommand{\ablRsixPFOne}{=1.00}",
                  r"\newcommand{\ablRoneDeltaROneAbs}{20.00}", r"\newcommand{\ablRsevenChangedAnswers}{0}",
-                 r"\newcommand{\ablMaxAbsDeltaFOne}{100.00}", r"\newcommand{\ablNQuestions}{40}"):
+                 r"\newcommand{\ablMaxAbsDeltaFOne}{100.00}", r"\newcommand{\ablNQuestions}{40}",
+                 r"\newcommand{\ablEmMin}{1.00}", r"\newcommand{\ablEmMax}{101.00}",
+                 r"\newcommand{\ablTestRfourFOne}{93.50}", r"\newcommand{\ablTestMaxAbsDiffFOne}{0.23}",
+                 r"\newcommand{\ablTestMaxStdFOne}{0.15}", r"\newcommand{\ablTestRthreeROne}{96.00}",
+                 r"\newcommand{\ablTestROneMin}{95.60}", r"\newcommand{\ablTestROneMax}{95.80}"):
         assert line in macros
     assert r"\ablRsixbDeltaFOne" not in macros                                     # pending: nothing to quote
+    assert r"\ablTestRsevenROne" not in macros                                     # R7 has no ranking of its own
 
     tests = json.loads((tables / "ablations_val_significance.json").read_text())
     assert {t["system"]: t["status"] for t in tests["f1"]}["r6b_deberta_evidence_s42"] == "pending"
@@ -592,6 +610,13 @@ def test_g3_curve_draws_the_pick_and_needs_its_record(tmp_path):
         path.unlink()
     missing = subprocess.run(["bash", G3_GRID, "curve"], capture_output=True, text=True, env=env)
     assert missing.returncode != 0 and "No record" in missing.stderr and "best.yaml pick" in missing.stderr
+
+
+def test_method_figure_writes_pdf_and_png(tmp_path):
+    subprocess.run([sys.executable, str(ROOT / "scripts/method_figure.py"), str(tmp_path)], check=True,
+                   capture_output=True)
+    assert (tmp_path / "method.pdf").read_bytes().startswith(b"%PDF")
+    assert (tmp_path / "method.png").stat().st_size > 0
 
 
 def overfit_real(n_questions=200, epochs=8, seed=2026):
