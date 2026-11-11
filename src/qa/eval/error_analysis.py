@@ -12,11 +12,24 @@ Inputs follow the team contracts (TEAM_TASKS 3.1):
   pred_sent: {qid: sent_idx of the predicted span}   (top n-best entry of C6 nbest.json)
   evidence: {qid: {"gold_sent": int, ...}}           (C3)
   gold:     {qid: [answer_text, ...]}                (SQuAD references)
+
+Usage:
+  python -m qa.eval.error_analysis --predictions outputs/<run_id>/val.joint_lam0.25.predictions.json
+      --nbest outputs/<run_id>/val.joint_lam0.25.nbest.json --evidence data/processed/evidence_val.jsonl
+      --data-file data/processed/val.json [--sent-rank outputs/<run_id>/val.sent_rank.json] [--spacy]
+
+Writes ``<split>.error_analysis.json`` (category table, question-type and answer-length slices,
+evidence-conditioned accuracy) and ``<split>.error_audit.csv`` (the sample for the manual audit).
+Evidence-conditioned accuracy uses the C8 top-1 sentence with --sent-rank (full model) and the
+sentence of the predicted span without it (span-implied). The test split needs ``--allow-test``.
 """
+import argparse
 import csv
+import json
 import random
 import re
 from collections import defaultdict
+from pathlib import Path
 
 from qa.eval.official import load_official_metrics as _official
 
@@ -167,3 +180,63 @@ def write_audit_sheet(path, records, questions, preds, gold, n=100, seed=42):
             w.writerow([_safe_cell(c) for c in (
                 qid, questions[qid], " ||| ".join(gold[qid]), preds[qid], records[qid]["category"], "")])
     return sample
+
+
+def _read_squad(squad_file):
+    """(questions, gold answers) by question id."""
+    data = json.loads(Path(squad_file).read_text())["data"]
+    qas = [qa for article in data for p in article["paragraphs"] for qa in p["qas"]]
+    return ({qa["id"]: qa["question"] for qa in qas},
+            {qa["id"]: [a["text"] for a in qa["answers"]] for qa in qas})
+
+
+def main(argv=None):
+    parser = argparse.ArgumentParser(description=__doc__.split("\n")[0])
+    parser.add_argument("--predictions", required=True, help="C6 <split>.*predictions.json")
+    parser.add_argument("--nbest", required=True, help="C6 nbest with sent_idx (top entry = the prediction)")
+    parser.add_argument("--evidence", required=True, help="C3 evidence_<split>.jsonl")
+    parser.add_argument("--data-file", required=True)
+    parser.add_argument("--sent-rank", help="C8 ranking; without it the span-implied sentence is used")
+    parser.add_argument("--spacy", action="store_true", help="NER labels from spaCy (else numbers only)")
+    parser.add_argument("--audit-size", type=int, default=100)
+    parser.add_argument("--out-dir")
+    parser.add_argument("--allow-test", action="store_true", help=argparse.SUPPRESS)
+    args = parser.parse_args(argv)
+    if Path(args.data_file).name.lower() == "dev-v1.1.json" and not args.allow_test:
+        raise SystemExit("Refusing to analyse test (dev-v1.1.json). Only final checkpoints, via "
+                         "scripts/run_all.sh, which passes --allow-test.")
+    preds = json.loads(Path(args.predictions).read_text())
+    nbest = json.loads(Path(args.nbest).read_text())
+    evidence = {rec["id"]: rec for rec in map(json.loads, Path(args.evidence).read_text().splitlines()) if rec}
+    questions, gold = _read_squad(args.data_file)
+    pred_sent = {qid: (entries[0]["sent_idx"] if entries else None) for qid, entries in nbest.items()}
+    entity_label = spacy_entity_label() if args.spacy else regex_entity_label
+
+    records = analyse(preds, pred_sent, evidence, gold, entity_label)
+    if args.sent_rank:
+        ranking = json.loads(Path(args.sent_rank).read_text())
+        top1 = {qid: int(ranking[qid][0][0]) for qid in evidence}
+    else:
+        top1 = {qid: pred_sent[qid] for qid in evidence}
+    out = {
+        "n": len(records),
+        "errors": sum(not r["correct"] for r in records.values()),
+        "category_table": category_table(records),
+        "question_type": slice_accuracy(records, {q: question_type(questions[q]) for q in records}),
+        "answer_length": slice_accuracy(records, {q: answer_length_bin(gold[q]) for q in records}),
+        "evidence_conditioned": evidence_conditioned_accuracy(records, top1, evidence),
+        "top1": "c8_ranking" if args.sent_rank else "span_implied",
+    }
+    split = Path(args.predictions).name.split(".")[0]
+    out_dir = Path(args.out_dir or Path(args.predictions).parent)
+    out_dir.mkdir(parents=True, exist_ok=True)
+    report = out_dir / f"{split}.error_analysis.json"
+    report.write_text(json.dumps(out, indent=2))
+    audit = out_dir / f"{split}.error_audit.csv"
+    write_audit_sheet(audit, records, questions, preds, gold, n=args.audit_size)
+    print(json.dumps(out["category_table"], indent=2))
+    print(f"report: {report}\naudit: {audit}")
+
+
+if __name__ == "__main__":
+    main()
