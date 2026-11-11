@@ -8,7 +8,7 @@
 #        bash scripts/run_all.sh ranking    # Recall@1/3 and MRR on test -> results/tables/ranking_test.*   (J6b)
 #        bash scripts/run_all.sh adversarial # AddSent/AddOneSent for every system -> results/tables/adversarial_*, figure   (J5)
 #        bash scripts/run_all.sh errors     # C8 error analysis of R3 (span-implied) and R4 (C8 ranking), seed 42
-#        bash scripts/run_all.sh efficiency # efficiency table from the committed timings (D5; timing itself: configs/efficiency/d5_slurm.sbatch)
+#        bash scripts/run_all.sh efficiency # efficiency table from the committed timings (D5); imports torch, so run it on a compute node, not the login node
 #        bash scripts/run_all.sh tables     # results/tables/test/*.csv|tex from the test records
 #        bash scripts/run_all.sh all        # data, verify, test, sequential, ranking, adversarial, errors, efficiency, tables
 #
@@ -93,20 +93,36 @@ cmd_verify() {
 # A re-decoding that reuses another run's record (R9a, R9b) passes its own variant, so make_tables.py
 # does not pool it with the run it borrows from.
 score() {
-    local out="$test_runs/$4.json" meta="$2"
+    local out="$test_runs/$4.json" meta
     if [[ -e "$out" ]]; then echo "skip $out (exists; delete it to re-score)"; return; fi
-    if [[ -n "${5:-}" ]]; then
-        meta="$(mktemp)"
-        "$qa_python" - "$2" "$meta" "$5" <<'PY'
+    # run_eval copies every field except the scores from the metadata. The val record's ranking
+    # fields (recall_at_1, recall_at_3, mrr) describe val, so they are nulled here; the test ranking
+    # is in results/tables/ranking_test.csv. A re-decoding also gets its own variant (see above).
+    meta="$(mktemp)"
+    "$qa_python" - "$2" "$meta" "${5:-}" <<'PY'
 import json, sys
 record = json.load(open(sys.argv[1]))
-record["variant"] = sys.argv[3]
+for key in ("recall_at_1", "recall_at_3", "mrr"):
+    record[key] = None
+if sys.argv[3]:
+    record["variant"] = sys.argv[3]
 json.dump(record, open(sys.argv[2], "w"))
 PY
-    fi
     "$qa_python" -m qa.eval.run_eval --data-file data/raw/dev-v1.1.json --predictions "$3" \
         --metadata "$meta" --split test --run-id "$4" --out-file "$out" --allow-test
-    if [[ "$meta" != "$2" ]]; then rm -f "$meta"; fi
+    rm -f "$meta"
+}
+
+# The table scripts write CRLF line endings; the committed tables use LF.
+normalize_eol() {
+    "$qa_python" - <<'PY'
+from pathlib import Path
+for path in Path("results/tables").rglob("*"):
+    if path.suffix in (".csv", ".tex"):
+        data = path.read_bytes()
+        if b"\r\n" in data:
+            path.write_bytes(data.replace(b"\r\n", b"\n"))
+PY
 }
 
 cmd_test() {
@@ -178,6 +194,7 @@ cmd_errors() {  # seed-42 outputs only (analysis_seed), like the ranking and adv
 cmd_ranking() {
     "$qa_python" -m qa.baselines.bm25_ranker --split test --allow-test
     "$qa_python" -m qa.eval.evidence_metrics table --split test --allow-test
+    normalize_eol
 }
 
 # Every system and seed on AddSent / AddOneSent. Inputs for qa.eval.adversarial and, through
@@ -210,6 +227,7 @@ cmd_adversarial() {
         "$qa_python" -m qa.eval.evidence_metrics table --split "$split" --output-dir outputs/adversarial
     done
     "$qa_python" -m qa.eval.adversarial figure
+    normalize_eol
 }
 
 cmd_efficiency() {
@@ -219,6 +237,7 @@ cmd_efficiency() {
 cmd_tables() {
     "$qa_python" scripts/make_tables.py --runs-dir "$test_runs" --out-dir results/tables/test
     "$qa_python" scripts/make_tables.py --literature --out-dir results/tables
+    normalize_eol
 }
 
 case "${1:-}" in
