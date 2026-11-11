@@ -1,5 +1,39 @@
 % Owner: Gokul. Budget: 0.35 pages.
+% Every number below comes from a generated file; rerun these to update them:
+%   bash configs/ablations/run_ablation.sh table   (table, ablations_val_macros.tex)
+%   bash configs/evidence/g3_grid.sh curve         (figure, lambda_curve_macros.tex)
+\input{../results/tables/ablations_val_macros}
+\input{../results/tables/lambda_curve_macros}
 \subsection{Ablations and Ranking Quality}
 \label{sec:ablations}
-% TODO: generated ablations, lambda curve, Recall@1/3, MRR, and significance.
-\textit{Ablations draft pending.}
+
+\begin{table*}[t]
+\centering
+\small
+\input{../results/tables/ablations_val}
+\caption{Ablations on val (\ablNQuestions{} questions; percent): mean $\pm$ sample standard
+deviation over seeds 13, 42 and 87. $\Delta$ is the seed-42 difference from the full model (R4),
+in points; $^{*}$ marks $p<0.01$ in a paired randomisation test over questions. R3 ranks
+sentences by its best span; R7 decodes R4's models at $\lambda=0$, so it shares R4's ranking.}
+\label{tab:ablations}
+\end{table*}
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\columnwidth]{lambda_curve}
+\caption{Val F1 against $\lambda$ for the \lamRuns{} tuning runs (seed 42). The chosen run
+($\alpha=\lamPickAlpha$, $\beta=\lamPickBeta$, $m=\lamPickMargin$) peaks at
+$\lambda=\lamPick$; the dashed line is span-only R3.}
+\label{fig:lambda}
+\end{figure}
+
+No component of the evidence model changes val accuracy measurably (Table~\ref{tab:ablations}):
+each ablation moves seed-42 F1 by at most \ablMaxAbsDeltaFOne{} points (smallest $p\ablMinPFOne$).
+Ranking is just as flat: model-mined, lexical, random and no negatives reach the same Recall@1,
+so mining the ranker's own hardest sentence does not beat BM25-selected negatives, and the audit
+in \S\ref{sec:evidence-labels} finds the two equally often plausible. The full model beats BM25 by
+\ablRoneDeltaROneAbs{} Recall@1 points ($p\ablRonePROne$), yet the span-only model's implied ranking
+is as good (R3: \ablRthreeDeltaROne{}, $p\ablRthreePROne$): the reader already finds the answer
+sentence. Joint decoding matters least: $\lambda=0$ (R7) changes \ablRsevenChangedAnswers{} of
+\ablNQuestions{} answers, and the best $\lambda$ gains at most \lamMaxGain{} F1
+(Figure~\ref{fig:lambda}).

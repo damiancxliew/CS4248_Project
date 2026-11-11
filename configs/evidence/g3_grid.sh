@@ -10,6 +10,7 @@
 #   bash configs/evidence/g3_grid.sh run 3         # train, predict, decode and score one (index 0-11)
 #   bash configs/evidence/g3_grid.sh run all       # all 12 one after another
 #   bash configs/evidence/g3_grid.sh summary       # table of finished runs and the pick
+#   bash configs/evidence/g3_grid.sh curve         # the lambda figure for paper section 5.2
 #
 # On the SoC cluster: configs/evidence/g3_slurm.sbatch (one array task per index).
 # Extra train.py overrides can be passed after the index, e.g. --set train.precision=fp16 on a T4.
@@ -22,6 +23,11 @@
 # F1 is within 0.2 of it count as tied (the same D3 setting gave 88.49 and 88.32 on two GPUs), and
 # among those the highest Recall@1 of the run's sentence ranking wins. A run's lambda is its
 # best-F1 one (equal F1: the smaller lambda). Gokul confirms the pick for configs/evidence/best.yaml.
+#
+# `curve` plots val F1 against lambda for every run in RESULTS_DIR: the best.yaml pick in colour,
+# the other runs in grey, and span-only R3 seed 42 as a dashed line when its record exists.
+# Writes FIGURES_DIR (default results/figures)/lambda_curve.{pdf,png} and the numbers section 5.2
+# quotes to TABLES_DIR (default results/tables)/lambda_curve_macros.tex.
 set -euo pipefail
 
 repo_root="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/../.." && pwd)"
@@ -201,8 +207,86 @@ if len(rows) < 12 or incomplete:
     print("Not final: the grid is incomplete.")
 EOF
         ;;
+    curve)
+        "$python_bin" - "$results_dir" "${FIGURES_DIR:-results/figures}" "${TABLES_DIR:-results/tables}" <<'EOF'
+import json
+import sys
+from pathlib import Path
+
+import matplotlib
+import yaml
+
+matplotlib.use("Agg")
+import matplotlib.pyplot as plt
+
+results_dir, figures_dir, tables_dir = (Path(arg) for arg in sys.argv[1:4])
+best = yaml.safe_load(Path("configs/evidence/best.yaml").read_text())
+pick = tuple(float(best["model"][key]) for key in ("alpha", "beta", "margin"))
+pick_lam = float(best["decode"]["lam"])
+span_only = Path("results/runs/r3_deberta_span_s42.json")  # same seed and GPU type as the grid
+
+curves = {}  # (alpha, beta, margin) -> {lambda: val F1}
+for path in sorted(results_dir.glob("g3_*_lam*.json")):
+    record = json.loads(path.read_text())
+    model = record["config"]["model"]
+    key = tuple(float(model[name]) for name in ("alpha", "beta", "margin"))
+    curves.setdefault(key, {})[float(record["config"]["decode"]["lam"])] = record["f1"]
+if pick not in curves or pick_lam not in curves[pick]:
+    sys.exit(f"No record in {results_dir}/ for the best.yaml pick (alpha, beta, margin = {pick}, "
+             f"lambda {pick_lam:g})")
+
+span_only_f1 = json.loads(span_only.read_text())["f1"] if span_only.is_file() else None
+plt.rcParams.update({"font.size": 8})
+fig, ax = plt.subplots(figsize=(3.1, 1.65))
+for key, curve in curves.items():
+    if key != pick:
+        lams = sorted(curve)
+        ax.plot(lams, [curve[lam] for lam in lams], color="#a3a29c", linewidth=0.8, alpha=0.8, zorder=1)
+ax.plot([], [], color="#a3a29c", linewidth=0.8, label=f"Other grid runs ({len(curves) - 1})")
+lams = sorted(curves[pick])
+alpha, beta, margin = pick
+ax.plot(lams, [curves[pick][lam] for lam in lams], color="#2a78d6", linewidth=1.8, marker="o",
+        markersize=3, zorder=3, label=f"Pick ($\\alpha$ {alpha:g}, $\\beta$ {beta:g}, $m$ {margin:g})")
+ax.plot([pick_lam], [curves[pick][pick_lam]], marker="o", markersize=7, markerfacecolor="none",
+        markeredgecolor="#2a78d6", zorder=4)
+if span_only_f1 is not None:
+    ax.axhline(span_only_f1, color="#52514e", linewidth=1, linestyle="--", zorder=2, label="Span-only (R3)")
+ax.set_xticks(lams, [f"{lam:g}" for lam in lams])
+ax.set_xlabel(r"$\lambda$ (weight of $\log p$(sentence) in decoding)")
+ax.set_ylabel("Val F1 (seed 42)")
+ax.yaxis.grid(True, color="#e4e3df", linewidth=0.8)
+ax.set_axisbelow(True)
+for side in ("top", "right"):
+    ax.spines[side].set_visible(False)
+for side in ("left", "bottom"):
+    ax.spines[side].set_color("#a3a29c")
+ax.tick_params(colors="#52514e")
+ax.legend(loc="lower left", fontsize=7, facecolor="white", edgecolor="none", framealpha=0.9)
+fig.tight_layout()
+figures_dir.mkdir(parents=True, exist_ok=True)
+out = figures_dir / "lambda_curve.pdf"
+fig.savefig(out, bbox_inches="tight")
+fig.savefig(out.with_suffix(".png"), dpi=200, bbox_inches="tight")
+plt.close(fig)
+gains = [max(curve.values()) - curve[0.0] for curve in curves.values() if 0.0 in curve]
+bests = [max(curve.values()) for curve in curves.values()]
+print(f"{len(curves)} runs; pick F1 {curves[pick][pick_lam]:.2f} at lambda {pick_lam:g}; "
+      f"best lambda gains at most {max(gains):.2f} F1 over lambda 0")
+macros = {"Runs": str(len(curves)), "PickAlpha": f"{alpha:g}", "PickBeta": f"{beta:g}", "PickMargin": f"{margin:g}",
+          "Pick": f"{pick_lam:g}", "PickFOne": f"{curves[pick][pick_lam]:.2f}",
+          "MaxGain": f"{max(gains):.2f}", "RunSpread": f"{max(bests) - min(bests):.2f}"}
+if span_only_f1 is not None:
+    macros["SpanOnlyFOne"] = f"{span_only_f1:.2f}"
+tables_dir.mkdir(parents=True, exist_ok=True)
+macros_path = tables_dir / "lambda_curve_macros.tex"
+macros_path.write_text("% Generated by configs/evidence/g3_grid.sh curve: numbers quoted in section 5.2.\n"
+                       + "".join(f"\\newcommand{{\\lam{name}}}{{{value}}}\n" for name, value in macros.items()))
+for path in (out, out.with_suffix(".png"), macros_path):
+    print(path)
+EOF
+        ;;
     *)
-        sed -n '2,24p' "$0" | sed 's/^# \{0,1\}//'
+        sed -n '2,30p' "$0" | sed 's/^# \{0,1\}//'
         exit 2
         ;;
 esac
