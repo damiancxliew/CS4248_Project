@@ -8,8 +8,10 @@ whose passage is the original with one distractor sentence appended at the end. 
 - **Clean EM / F1 and drop:** the same 1,000 originals without a distractor; drop = clean − worst case.
 - **(a) answer from the distractor:** share of adversarial questions whose predicted answer (top C6
   n-best entry) lies in the appended sentence.
-- **(b) distractor ranked first:** for systems with a C8 ranking, share of adversarial questions whose
-  rank-1 sentence is the appended one.
+- **(b) distractor ranked first:** for systems with a sentence ranking, share of adversarial questions
+  whose rank-1 sentence is the appended one. Rankers use their C8 file; the span-only R3 uses its
+  span-implied ranking (``evidence_metrics.span_implied_ranking`` on its C6 n-best, as in the J6
+  table). R7 is R4's checkpoints decoded at λ = 0, so its ranker is R4's and (b) is left out (as R4).
 
 The appended sentence is located by character offset, not by trusting the splitter: in a few passages
 (92 of 2,560 in AddSent) the C3 splitter merges it with the original's last sentence. Its sentence is
@@ -32,6 +34,7 @@ from collections import defaultdict
 from pathlib import Path
 from statistics import mean, stdev
 
+from qa.eval.evidence_metrics import span_implied_ranking
 from qa.eval.official import load_official_metrics
 
 DATA_DIR = "data/processed"
@@ -41,17 +44,19 @@ TABLE_DIR = "results/tables"
 SEEDS = (13, 42, 87)
 SPLITS = ("addsent", "addonesent")
 
-# (label, run_id, predictions name or None, has its own C8 ranking)
+# (label, run_id, predictions name or None, ranking): ranking None = none, "rank" = the run's C8
+# <split>.sent_rank.json, "span" = span-implied from the run's span-decoder <split>.nbest.json.
 SYSTEMS = (
-    ("BM25 (R1)", "r1_bm25", None, True),
-    ("BERT span (R2)", "r2_bert_span", "", False),
-    ("DeBERTa span (R3)", "r3_deberta_span", "", False),
-    ("Full model (R4)", "r4_deberta_evidence", "joint_lam0.25", True),
-    ("No negatives (R5)", "r5_deberta_evidence", "joint_lam0.25", True),
-    ("Random negatives (R6)", "r6_deberta_evidence", "joint_lam0.25", True),
-    ("Lexical negatives (R6b)", "r6b_deberta_evidence", "joint_lam0.25", True),
-    ("No evidence decoding (R7)", "r7_deberta_evidence", "joint_lam0", False),
+    ("BM25 (R1)", "r1_bm25", None, "rank"),
+    ("BERT span (R2)", "r2_bert_span", "", None),
+    ("DeBERTa span (R3)", "r3_deberta_span", "", "span"),
+    ("Full model (R4)", "r4_deberta_evidence", "joint_lam0.25", "rank"),
+    ("No negatives (R5)", "r5_deberta_evidence", "joint_lam0.25", "rank"),
+    ("Random negatives (R6)", "r6_deberta_evidence", "joint_lam0.25", "rank"),
+    ("Lexical negatives (R6b)", "r6b_deberta_evidence", "joint_lam0.25", "rank"),
+    ("No evidence decoding (R7)", "r7_deberta_evidence", "joint_lam0", None),  # R4's ranker
 )
+RANKINGS = (None, "rank", "span")
 METRICS = ("exact", "f1", "clean_exact", "clean_f1", "drop_exact", "drop_f1",
            "answer_in_adv", "adv_at_rank1")
 
@@ -185,33 +190,48 @@ def run_files(run_dir, split, pred_name):
     return Path(run_dir) / f"{stem}predictions.json", Path(run_dir) / f"{stem}nbest.json"
 
 
-def score_dir(split, run_dir, pred_name, ranked):
+def ranking_file(run_dir, split, ranking):
+    """Where a run's sentence ranking comes from (None if it has none)."""
+    if ranking not in RANKINGS:
+        raise ValueError(f"ranking must be one of {RANKINGS}, got {ranking!r}")
+    if ranking is None:
+        return None
+    return Path(run_dir) / (f"{split}.sent_rank.json" if ranking == "rank" else f"{split}.nbest.json")
+
+
+def load_ranking(split, run_dir, ranking):
+    path = ranking_file(run_dir, split.name, ranking)
+    if path is None:
+        return None
+    return span_implied_ranking(_load(path), split.evidence) if ranking == "span" else _load(path)
+
+
+def score_dir(split, run_dir, pred_name, ranking):
     pred_path, nbest_path = run_files(run_dir, split.name, pred_name) if pred_name is not None else (None, None)
-    rank_path = Path(run_dir) / f"{split.name}.sent_rank.json" if ranked else None
     return score_run(split,
                      _load(pred_path) if pred_path else None,
                      _load(nbest_path) if nbest_path else None,
-                     _load(rank_path) if rank_path else None)
+                     load_ranking(split, run_dir, ranking))
 
 
 def table_rows(split, adv_dir=ADV_DIR, bm25_dir=BM25_DIR, systems=SYSTEMS):
     """One row per system with outputs: mean and sample std over seeds."""
     rows = []
-    for label, run_id, pred_name, ranked in systems:
+    for label, run_id, pred_name, ranking in systems:
         if run_id == "r1_bm25":
             dirs = [(None, Path(bm25_dir))]
         else:
             dirs = [(s, Path(adv_dir) / f"{run_id}_s{s}") for s in SEEDS]
-        needed = []
-        if pred_name is not None:
-            needed += [run_files(d, split.name, pred_name)[0] for _, d in dirs]
-        if ranked:
-            needed += [d / f"{split.name}.sent_rank.json" for _, d in dirs]
-        found = [(s, d) for s, d in dirs if all(p.is_file() for p in needed if p.parent == d)]
+
+        def needed(d):
+            paths = [run_files(d, split.name, pred_name)[0]] if pred_name is not None else []
+            return paths + ([ranking_file(d, split.name, ranking)] if ranking else [])
+
+        found = [(s, d) for s, d in dirs if all(p.is_file() for p in needed(d))]
         if not found:
             print(f"{label}: no {split.name} outputs under {dirs[0][1].parent}; left out", file=sys.stderr)
             continue
-        runs = [score_dir(split, d, pred_name, ranked) for _, d in found]
+        runs = [score_dir(split, d, pred_name, ranking) for _, d in found]
         row = {"system": label, "run_id": run_id,
                "seeds": " ".join(str(s) for s, _ in found if s is not None), "n_adv": runs[0]["n_adv"]}
         for m in METRICS:
@@ -242,7 +262,8 @@ def write_table(rows, split_name, out_dir=TABLE_DIR):
     shown = ("clean_f1", "f1", "drop_f1", "answer_in_adv", "adv_at_rank1")
     lines = [f"% Generated by qa.eval.adversarial table --split {split_name}; percent, mean $\\pm$ sample "
              "std over seeds. F1 is worst case over each original's group; (a) answer in the distractor, "
-             "(b) distractor ranked first, both over adversarial questions.",
+             "(b) distractor ranked first, both over adversarial questions. (b) for R3 is its span-implied "
+             "ranking; R7 uses R4's ranker, so its (b) is R4's.",
              r"\begin{tabular}{lccccc}", r"\hline",
              r"System & Clean F1 & Adv. F1 & Drop & (a) & (b) \\", r"\hline",
              *(f"{row['system']} & " + " & ".join(cell(row, m) for m in shown) + r" \\" for row in rows),
@@ -318,6 +339,8 @@ def main(argv=None):
     score.add_argument("--predictions", default="", help='prediction name, e.g. "joint_lam0.25"; "" = span decoder')
     score.add_argument("--no-answers", action="store_true", help="ranking only (BM25)")
     score.add_argument("--ranked", action="store_true", help="also score <split>.sent_rank.json")
+    score.add_argument("--span-implied", action="store_true",
+                       help="also score the span-implied ranking from <split>.nbest.json (span-only R3)")
     score.add_argument("--group-scores-out",
                        help="write per-group worst-case F1 {original id: 0..1} here, for significance.py")
     table = commands.choices["table"]
@@ -335,7 +358,10 @@ def main(argv=None):
     split = Split(args.split, args.data_dir)
 
     if args.command == "score":
+        if args.ranked and args.span_implied:
+            raise SystemExit("--ranked and --span-implied are exclusive")
         pred = None if args.no_answers else args.predictions
+        ranking = "rank" if args.ranked else ("span" if args.span_implied else None)
         if args.group_scores_out:
             if pred is None:
                 raise SystemExit("--group-scores-out needs predictions")
@@ -343,7 +369,7 @@ def main(argv=None):
             worst = group_worst(f1, list(split.contexts))
             Path(args.group_scores_out).write_text(json.dumps(worst) + "\n")
         print(json.dumps({"split": args.split, "run_dir": args.run_dir,
-                          **score_dir(split, args.run_dir, pred, args.ranked)}, indent=2))
+                          **score_dir(split, args.run_dir, pred, ranking)}, indent=2))
     else:
         rows = table_rows(split, args.adv_dir, args.bm25_dir)
         if not rows:
