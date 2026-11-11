@@ -1,6 +1,34 @@
 % Owner: Gokul. Budget: 0.40 pages, including the method figure.
+% TODO (Gokul): method figure (encoder -> span head + sentence head -> joint score); text first.
 \subsection{Sentence Ranker and Joint Decoding}
 \label{sec:sentence-ranker}
-% TODO: pooling, online hard negatives, listwise/margin losses, passage
-% aggregation, joint objective, and joint span score.
-\textit{Sentence ranker draft pending.}
+
+The evidence model adds a sentence-ranking head to the span extractor
+(\S\ref{sec:span-extractor}), sharing its encoder. For each sentence $j$ visible in a window, the
+head mean-pools the sentence's token states into $\bar{\mathbf{h}}_j$ and scores it with one linear
+layer, $s_j=\mathbf{w}^{\top}\mathrm{dropout}(\bar{\mathbf{h}}_j)+b$.
+
+\paragraph{Training.} Two losses train the head on each window that shows the gold sentence $g$
+(\S\ref{sec:evidence-labels}). A listwise cross-entropy over the window's sentences,
+$\mathcal{L}_{\text{rank}}=-\log\operatorname{softmax}(\mathbf{s})_g$, ranks $g$ first. A margin
+loss $\mathcal{L}_{\text{neg}}=\max(0,\,m-s_g+s_n)$ pushes $g$ above one negative sentence $n$. By
+default $n$ is mined online: among the window's candidates (visible, not gold, and containing no
+reference answer string), the one the head currently scores highest, so the negative follows the
+model's own confusions as it trains. The ablations replace it with a fixed BM25-selected
+(\emph{lexical}) or random candidate, or drop $\mathcal{L}_{\text{neg}}$. The objective is
+\begin{equation*}
+\mathcal{L}=\tfrac{1}{2}(\mathcal{L}_{\text{start}}+\mathcal{L}_{\text{end}})
++\alpha\,\mathcal{L}_{\text{rank}}+\beta\,\mathcal{L}_{\text{neg}}.
+\end{equation*}
+
+\paragraph{Ranking and joint decoding.} At inference, each window's sentence scores are
+log-softmaxed over its visible sentences, and a sentence's passage-level log-probability
+$\log p(j)$ is its maximum over the windows that show it; sorting by $\log p(j)$ gives the
+passage ranking. Joint decoding rescores every candidate span $(a,b)$ of the standard decoder,
+with start and end logits $z^{\text{start}}_a$ and $z^{\text{end}}_b$, as
+\begin{equation*}
+\mathrm{score}(a,b)=z^{\text{start}}_a+z^{\text{end}}_b+\lambda\log p\bigl(\mathrm{sent}(a)\bigr),
+\end{equation*}
+where $\mathrm{sent}(a)$ is the sentence holding the span's start. Setting $\lambda=0$ recovers
+span-only decoding exactly. We tune $\alpha$, $\beta$, $m$ and $\lambda$ on val
+(\S\ref{sec:ablations}).
