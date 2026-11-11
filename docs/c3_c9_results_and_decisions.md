@@ -2,6 +2,29 @@
 
 11 Nov 2026. All numbers are on the **val** split (9,340 questions). **Nothing has been scored on test.** Means over seeds are my own arithmetic.
 
+## Decision: `k = 2` for the sequential pipelines (R9a and R9b)
+
+`k = 2` is the frozen sentence budget, set from val only and written in `configs/final_checkpoints.yaml`. It is used for both R9a (BM25 + R3) and R9b (R4's ranker + reader). The full k = 1, 2, 3, all sweep is still reported for both pipelines. Decided by Clemen as the C3 owner; the team can object in the PR review, and Gokul (G3) is informed because R4 is his model.
+
+**Rule, fixed before the R4 sweep:** the smallest `k` whose val F1 is within 0.1 of `k = all`.
+
+**Evidence (R4 ranker + reader, val, one column per seed 13 / 42 / 87; full tables in section 3.1):**
+
+| | k = 1 | k = 2 | k = 3 | all |
+|---|---|---|---|---|
+| F1 vs `all` | -0.23 / -0.21 / -0.34 | 0.00 / +0.01 / -0.01 | 0.00 / 0.00 / 0.00 | 0 |
+| EM | 75.94 / 76.00 / 75.67 | 76.22 / 76.27 / 76.05 | 76.22 / 76.27 / 76.05 | 76.22 / 76.27 / 76.05 |
+| Recall@k | 96.43 / 96.47 / 96.23 | 99.31 / 99.37 / 99.29 | 99.72 / 99.81 / 99.72 | 100 |
+
+- **Why not `k = 1`:** it is 0.21 to 0.34 F1 below `all` on every seed, outside the 0.1 tolerance, and it loses 0.27 to 0.38 EM.
+- **Why 2 and not larger:** at `k = 2` EM equals `all` on all three seeds and F1 is within 0.01. `k = 3` and `all` add nothing to EM or F1, only about 0.4 points of Recall@k. So 2 is the smallest budget that costs nothing.
+- **Why it is not a seed accident:** all three seeds pick 2 independently. The seed means are k=1 EM 75.87 / F1 88.08 and k=2 EM 76.18 / F1 88.34, the same as `all`.
+
+**Caveats:**
+- The plan says "tuned `k`" for each pipeline. I read it as one shared `k` so R9a and R9b are compared at the same budget. Under the same rule BM25 alone would need `k = all`, which is plain R3 span-only (section 3.2); at `k = 2` R9a gets 71.67 EM / 83.49 F1 against 76.27 / 88.33 for R9b (both seed 42).
+- The rule is my proposal. A different rule could pick 3, but the F1 differences between 2 and 3 are 0.01 or less.
+- If the team objects, change `decode.k` in the yaml **before** the test run, not after.
+
 ## 1. Frozen checkpoints (`configs/final_checkpoints.yaml`, PR #64)
 
 - 6 systems x 3 seeds (13, 42, 87) = 18 checkpoints: R2, R3, R4, R5, R6, R6b. R7, R9a and R9b re-decode existing outputs, so they have none.
@@ -78,7 +101,7 @@ k=1: 96.46 / 76.06 / 88.23. k=2: 99.31 / 76.38 / 88.48. k=3: 99.79 / 76.39 / 88.
 | # | Decision | Status |
 |---|---|---|
 | 1 | Test on **all three seeds** of all six systems (mean ± std). Fallback: seed 42 only. | PR #64 asks team to confirm |
-| 2 | One shared `k = 2` for R9a and R9b, from the R4 val sweeps. Full k = 1, 2, 3, all sweep reported for both. | Needs Gokul (G3) |
+| 2 | One shared `k = 2` for R9a and R9b, from the R4 val sweeps. Full k = 1, 2, 3, all sweep reported for both. | Decided (C3 owner); open to objection in the PR review before the test run |
 | 3 | Error analysis, ranking and adversarial scripts use seed 42 (`analysis_seed`). | Proposed |
 | 4 | Test records go in `results/runs/test/`, not `results/runs/` (contract C7), so val and test don't mix. The C7 location would also work since `make_tables.py` groups by split. | Needs Xin Hui (C7 owner) |
 | 5 | R9a/R9b test records get their own `variant` (`sequential_bm25_k<k>`, `sequential_model_k<k>`); otherwise `make_tables.py` pools them into R3/R4. | Done in `run_all.sh` |
