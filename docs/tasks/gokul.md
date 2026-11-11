@@ -192,13 +192,13 @@ Status key: ☐ not started · 🟡 in progress / partial (mocked) · 🚧 block
 - C9 R4 checkpoints: on Drive (9 Nov); Clemen's `verify` passes 18/18 and the R4 hashes match Gokul's.
 - λ figure for §5.2: covered by `g3_grid.sh curve` instead of Xin Hui's `make_figs.py`.
 - R6b seed-42 val answers (11 Nov): Clemen asked Gokul to re-make them; done on `h100-47`, exact match with his record (G5 row).
+- Significance form (Gokul, 11 Nov): keep the original plan (TEAM_TASKS X3): `significance.py`'s paired bootstrap (10k resamples, 95% interval) and approximate randomisation on per-question scores. The G5 stars use the two-sided randomisation p < 0.01, as J5 and J6 do, not the lecture's one-sided bootstrap p.
 
 **To raise (need an answer from the named person):**
 - Damian (plan wording, the last G1 item):
   - TEAM_TASKS §5 G1 row: replace "dumps the mined negatives for 200 val questions" with the 3 Nov agreement (export once after training, on J3's 100 train questions).
   - TEAM_TASKS §2.3 step 6: `L_neg` is also skipped when the gold sentence isn't in the window (`sent_label = -100`), since there is no `s_gold`.
 - Damian (cluster, 4 Nov): `--gpus=h100-47` on `xgpi15` gave a whole H100 NVL (torch: `NVIDIA H100 NVL`, 94 GB), not R3's `MIG 3g.47gb`, though Slurm lists the node as `h100-47:4`. `g3_slurm.sbatch` now excludes it and stops any task that doesn't see the MIG slice. Worth knowing for R4+ seeds, and maybe worth reporting to SoC.
-- Xin Hui (X3): the G5 stars use the two-sided randomisation p from `significance.py` at p < 0.01, as J6 and J5 do in their JSONs (the 95% bootstrap interval is in `ablations_val_significance.json`). Confirm the paper reports that form rather than the lecture's one-sided bootstrap p.
 - Xin Hui (X7, page check):
   - §5.2 is about 0.5 pages against its 0.35 budget (the full-width table plus the λ figure take about 0.3). The options are dropping the figure (the text already quotes its numbers) or another section giving up space.
   - §3.3 is at its 0.40 budget before the method figure. A TikZ figure needs `\usepackage{tikz}` in `main.tex` (Xin Hui's file).
