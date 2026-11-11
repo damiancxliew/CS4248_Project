@@ -53,9 +53,9 @@ OFFICIAL_EVAL = ROOT / "src/qa/eval/evaluate-v2.0.py"
 # --- config -------------------------------------------------------------------------------
 
 def load_config(config_path=None, base_path=ROOT / "configs/base.yaml", overrides=()):
-    cfg = yaml.safe_load(Path(base_path).read_text())
+    cfg = yaml.safe_load(Path(base_path).read_text(encoding="utf-8"))
     if config_path:
-        cfg = deep_merge(cfg, yaml.safe_load(Path(config_path).read_text()) or {})
+        cfg = deep_merge(cfg, yaml.safe_load(Path(config_path).read_text(encoding="utf-8")) or {})
     for item in overrides:
         key, sep, value = item.partition("=")
         if not sep:
@@ -162,7 +162,7 @@ def official_scores(squad_file, predictions):
     Interim until run_eval.py (Xin Hui, X2) exposes a callable API; it computes the same thing.
     """
     official = _official_module()
-    dataset = json.loads(Path(squad_file).read_text())["data"]
+    dataset = json.loads(Path(squad_file).read_text(encoding="utf-8"))["data"]
     qids = {qa["id"] for article in dataset for p in article["paragraphs"] for qa in p["qas"]}
     missing = qids - set(predictions)
     if missing:  # the official script skips missing qids instead of scoring them 0

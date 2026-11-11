@@ -1,0 +1,280 @@
+{
+ "meta": {
+  "split": "val",
+  "gpu": "NVIDIA H100 NVL MIG 3g.47gb",
+  "batch_size": 64,
+  "repeats": 3,
+  "limit": null,
+  "torch": "2.6.0+cu124",
+  "transformers": "4.49.0",
+  "host": "xgpi11",
+  "git_sha": "12a03174b4001601a496aca62d76106cce455067",
+  "date": "2026-11-10T02:22:04+00:00"
+ },
+ "rows": [
+  {
+   "name": "bert_span",
+   "system": "bert_span_only",
+   "variant": "span_only",
+   "decoder": "span",
+   "lam": 0.0,
+   "k": null,
+   "encoder": "bert-base-uncased",
+   "checkpoint": null,
+   "params_M": 109.484,
+   "n_questions": 9340,
+   "n_windows": 9418,
+   "batch_size": 64,
+   "precision": "bf16",
+   "segment_s": 0.0,
+   "features_s": 9.695,
+   "forward_s": 10.0397,
+   "decode_s": 6.8194,
+   "runs_s": {
+    "segment": [
+     0.0,
+     0.0,
+     0.0
+    ],
+    "features": [
+     9.695,
+     9.5764,
+     9.7788
+    ],
+    "forward": [
+     10.1423,
+     10.0397,
+     9.6039
+    ],
+    "decode": [
+     6.9167,
+     6.8194,
+     6.7937
+    ]
+   },
+   "model_qps": 554.0,
+   "e2e_qps": 351.73,
+   "peak_mem_gb": 1.25
+  },
+  {
+   "name": "deberta_span",
+   "system": "deberta_span_only",
+   "variant": "span_only",
+   "decoder": "span",
+   "lam": 0.0,
+   "k": null,
+   "encoder": "microsoft/deberta-v3-base",
+   "checkpoint": null,
+   "params_M": 183.833,
+   "n_questions": 9340,
+   "n_windows": 9400,
+   "batch_size": 64,
+   "precision": "bf16",
+   "segment_s": 0.0,
+   "features_s": 10.5478,
+   "forward_s": 24.7692,
+   "decode_s": 7.3116,
+   "runs_s": {
+    "segment": [
+     0.0,
+     0.0,
+     0.0
+    ],
+    "features": [
+     10.685,
+     10.5478,
+     10.2545
+    ],
+    "forward": [
+     24.7692,
+     24.294,
+     25.1086
+    ],
+    "decode": [
+     7.3116,
+     7.2629,
+     7.3857
+    ]
+   },
+   "model_qps": 291.14,
+   "e2e_qps": 219.1,
+   "peak_mem_gb": 3.25
+  },
+  {
+   "name": "deberta_evidence",
+   "system": "deberta_evidence",
+   "variant": "model_mined",
+   "decoder": "span",
+   "lam": 0.0,
+   "k": null,
+   "encoder": "microsoft/deberta-v3-base",
+   "checkpoint": null,
+   "params_M": 183.834,
+   "n_questions": 9340,
+   "n_windows": 9400,
+   "batch_size": 64,
+   "precision": "bf16",
+   "segment_s": 4.9438,
+   "features_s": 22.7136,
+   "forward_s": 24.8999,
+   "decode_s": 7.2472,
+   "runs_s": {
+    "segment": [
+     4.9591,
+     4.9438,
+     4.9382
+    ],
+    "features": [
+     22.886,
+     22.7136,
+     22.5807
+    ],
+    "forward": [
+     24.8999,
+     24.9102,
+     24.8778
+    ],
+    "decode": [
+     7.2502,
+     6.952,
+     7.2472
+    ]
+   },
+   "model_qps": 290.54,
+   "e2e_qps": 156.18,
+   "peak_mem_gb": 3.25
+  },
+  {
+   "name": "deberta_evidence",
+   "system": "deberta_evidence",
+   "variant": "model_mined",
+   "decoder": "joint",
+   "lam": 0.25,
+   "k": null,
+   "encoder": "microsoft/deberta-v3-base",
+   "checkpoint": null,
+   "params_M": 183.834,
+   "n_questions": 9340,
+   "n_windows": 9400,
+   "batch_size": 64,
+   "precision": "bf16",
+   "segment_s": 4.9438,
+   "features_s": 22.7136,
+   "forward_s": 24.8999,
+   "decode_s": 11.3012,
+   "runs_s": {
+    "segment": [
+     4.9591,
+     4.9438,
+     4.9382
+    ],
+    "features": [
+     22.886,
+     22.7136,
+     22.5807
+    ],
+    "forward": [
+     24.8999,
+     24.9102,
+     24.8778
+    ],
+    "decode": [
+     11.3012,
+     11.232,
+     11.6564
+    ]
+   },
+   "model_qps": 258.0,
+   "e2e_qps": 146.26,
+   "peak_mem_gb": 3.25
+  },
+  {
+   "name": "deberta_evidence",
+   "system": "deberta_evidence",
+   "variant": "model_mined",
+   "decoder": "sequential",
+   "lam": null,
+   "k": 1,
+   "encoder": "microsoft/deberta-v3-base",
+   "checkpoint": null,
+   "params_M": 183.834,
+   "n_questions": 9340,
+   "n_windows": 9400,
+   "batch_size": 64,
+   "precision": "bf16",
+   "segment_s": 4.9438,
+   "features_s": 22.7136,
+   "forward_s": 24.8999,
+   "decode_s": 11.1776,
+   "runs_s": {
+    "segment": [
+     4.9591,
+     4.9438,
+     4.9382
+    ],
+    "features": [
+     22.886,
+     22.7136,
+     22.5807
+    ],
+    "forward": [
+     24.8999,
+     24.9102,
+     24.8778
+    ],
+    "decode": [
+     11.1516,
+     11.1776,
+     11.4637
+    ]
+   },
+   "model_qps": 258.89,
+   "e2e_qps": 146.54,
+   "peak_mem_gb": 3.25
+  },
+  {
+   "name": "deberta_large_span",
+   "system": "deberta_large_span_only",
+   "variant": "span_only",
+   "decoder": "span",
+   "lam": 0.0,
+   "k": null,
+   "encoder": "microsoft/deberta-v3-large",
+   "checkpoint": null,
+   "params_M": 434.014,
+   "n_questions": 9340,
+   "n_windows": 9400,
+   "batch_size": 64,
+   "precision": "bf16",
+   "segment_s": 0.0,
+   "features_s": 9.3825,
+   "forward_s": 57.1012,
+   "decode_s": 6.7539,
+   "runs_s": {
+    "segment": [
+     0.0,
+     0.0,
+     0.0
+    ],
+    "features": [
+     9.5788,
+     9.3825,
+     9.3004
+    ],
+    "forward": [
+     57.1602,
+     57.1012,
+     57.0645
+    ],
+    "decode": [
+     7.1167,
+     6.7539,
+     6.7503
+    ]
+   },
+   "model_qps": 146.27,
+   "e2e_qps": 127.53,
+   "peak_mem_gb": 6.45
+  }
+ ]
+}

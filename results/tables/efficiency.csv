@@ -1,0 +1,7 @@
+label,system,variant,decoder,params_M,train_gpu_hours_mean,train_gpu_hours_std,train_seeds,segment_s,features_s,forward_s,decode_s,decode_ms_per_q,model_qps,e2e_qps,forward_vs_base_pct,peak_mem_gb,n_questions,gpu
+BERT-base span-only (R2),bert_span_only,span_only,span,109.484,0.138,0.001,3,0.0,9.695,10.0397,6.8194,0.73,554.0,351.73,-59.5,1.25,9340,NVIDIA H100 NVL MIG 3g.47gb
+DeBERTa-v3-base span-only (R3),deberta_span_only,span_only,span,183.833,0.32,0.013,3,0.0,10.5478,24.7692,7.3116,0.783,291.14,219.1,0.0,3.25,9340,NVIDIA H100 NVL MIG 3g.47gb
+"Evidence model, lambda = 0 (R7)",deberta_evidence,model_mined,span,183.834,0.332,0.004,3,4.9438,22.7136,24.8999,7.2472,0.776,290.54,156.18,0.5,3.25,9340,NVIDIA H100 NVL MIG 3g.47gb
+"Evidence model, joint (R4)",deberta_evidence,model_mined,joint,183.834,0.332,0.004,3,4.9438,22.7136,24.8999,11.3012,1.21,258.0,146.26,0.5,3.25,9340,NVIDIA H100 NVL MIG 3g.47gb
+"Evidence model, rank-then-read",deberta_evidence,model_mined,sequential,183.834,0.332,0.004,3,4.9438,22.7136,24.8999,11.1776,1.197,258.89,146.54,0.5,3.25,9340,NVIDIA H100 NVL MIG 3g.47gb
+DeBERTa-v3-large span-only (R8),deberta_large_span_only,span_only,span,434.014,0.81,,1,0.0,9.3825,57.1012,6.7539,0.723,146.27,127.53,130.5,6.45,9340,NVIDIA H100 NVL MIG 3g.47gb
