@@ -13,13 +13,23 @@
 #   bash configs/ablations/run_ablation.sh run configs/ablations/r4_full.yaml \
 #       configs/ablations/r7_no_evidence_decoding.yaml all     # seeds 13, 42, 87 in turn
 #   bash configs/ablations/run_ablation.sh summary               # val records per config
+#   bash configs/ablations/run_ablation.sh table                 # G5 table and tests against R4
 #
 # On the SoC cluster: configs/ablations/ablation_slurm.sbatch (one array task per seed).
 # Extra train.py overrides go after `--`, e.g. `run <config> 42 -- --set train.precision=fp32`.
-# OUTPUT_DIR (default outputs) and RESULTS_DIR (default results/runs) move the outputs.
+# OUTPUT_DIR (default outputs), RESULTS_DIR (default results/runs) and TABLES_DIR (default
+# results/tables) move the outputs.
 #
 # Not train.py --record: that scores the picked epoch at lambda 0 (span-only), which for these
 # configs is R7's number, not theirs. Records here are made at each config's own lambda.
+#
+# G5 `table`: one row per ablation (R4, R3, R5, R6, R6b, R7) plus BM25 (R1) for ranking quality.
+# EM and F1 are mean +- sample std over seeds 13/42/87 from the records; Recall@1 and MRR come
+# from J6's ranking_val.csv. Each row is tested against R4 on seed 42: F1 per question from the
+# official script on OUTPUT_DIR/<run_id>_s42's val answers, through qa.eval.significance (X3), and
+# Recall@1 from J6's ranking_val_significance.json. Writes TABLES_DIR/ablations_val.{csv,tex},
+# ablations_val_macros.tex (the numbers section 5.2 quotes) and ablations_val_significance.json; a
+# row whose seed-42 answers are missing is marked pending.
 set -euo pipefail
 
 repo_root="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/../.." && pwd)"
@@ -32,7 +42,7 @@ seeds=(13 42 87)
 overrides=()
 
 usage() {
-    echo "usage: $0 list | run <config.yaml>... <seed|all> [-- train.py overrides...] | summary" >&2
+    echo "usage: $0 list | run <config.yaml>... <seed|all> [-- train.py overrides...] | summary | table" >&2
     exit 2
 }
 
@@ -210,8 +220,244 @@ for path in sys.argv[2:]:
         print(f"  warning: {warning}")
 EOF
         ;;
+    table)
+        "$python_bin" - "$results_dir" "$output_dir" "${TABLES_DIR:-results/tables}" <<'EOF'
+import csv
+import hashlib
+import json
+import sys
+from pathlib import Path
+from statistics import mean, stdev
+
+from qa.eval.run_eval import _official_module
+from qa.eval.significance import compare_scores
+
+results_dir, output_dir, tables_dir = (Path(arg) for arg in sys.argv[1:4])
+SEEDS, SEED, ALPHA, BASE, BM25 = (13, 42, 87), 42, 0.01, "r4_deberta_evidence", "r1_bm25"
+ROWS = (  # TEAM_TASKS G5: full vs. -ranking vs. -negatives vs. random vs. lexical vs. -evidence decoding
+    (BASE, "Full model (R4)", "Rfour"),  # (run_id, label, LaTeX macro tag)
+    ("r3_deberta_span", "Span-only (R3)", "Rthree"),
+    ("r5_deberta_evidence", "No negatives (R5)", "Rfive"),
+    ("r6_deberta_evidence", "Random negatives (R6)", "Rsix"),
+    ("r6b_deberta_evidence", "Lexical negatives (R6b)", "Rsixb"),
+    ("r7_deberta_evidence", "No evidence decoding (R7)", "Rseven"),
+    (BM25, "BM25 (R1)", "Rone"),  # a ranker with no reader: ranking columns only
+)
+RANKING_FROM = {"r7_deberta_evidence": BASE}  # R7 re-decodes R4's models, so it ranks as R4 does
+METRICS = ("em", "f1", "recall_at_1", "mrr")
+
+
+def sha256(path):
+    return hashlib.sha256(path.read_bytes()).hexdigest()
+
+
+def records(run_id):
+    found = {}
+    for path in results_dir.glob(f"{run_id}_s*.json"):
+        record = json.loads(path.read_text())
+        if record["split"] == "val":
+            found[record["seed"]] = record
+    if sorted(found) != list(SEEDS):
+        sys.exit(f"{results_dir}/{run_id}_s*.json: need val records for seeds {SEEDS}, found {sorted(found)}")
+    return found
+
+
+def answers(record):
+    """(file, {qid: answer}) of the run's val answers under OUTPUT_DIR; answers is None if absent."""
+    run_dir = output_dir / record["run_id"]
+    lam = record["config"].get("decode", {}).get("lam")
+    if lam is not None:  # evidence model: the joint decoding its record was scored with
+        path = run_dir / f"val.joint_lam{float(lam):g}.predictions.json"
+        return path, json.loads(path.read_text()) if path.is_file() else None
+    path, nbest = run_dir / "val.predictions.json", run_dir / "val.nbest.json"
+    if path.is_file():
+        return path, json.loads(path.read_text())
+    if nbest.is_file():  # span-only: the C6 n-best is sorted best first, so its top text is the answer
+        return nbest, {qid: entries[0]["text"] if entries else ""
+                       for qid, entries in json.loads(nbest.read_text()).items()}
+    return path, None
+
+
+def f1_per_question(record, path, preds):
+    missing = set(qids) - set(preds)
+    if missing:
+        sys.exit(f"{path} has no answer for {len(missing)} val question(s), e.g. {sorted(missing)[:3]}")
+    f1 = official.get_raw_scores(dataset, preds)[1]
+    f1 = {qid: f1[qid] for qid in qids}
+    score = 100 * mean(f1.values())
+    if abs(score - record["f1"]) > 1e-6:
+        sys.exit(f"{path} scores val F1 {score:.4f}, but {record['run_id']} records {record['f1']:.4f}: "
+                 "is it that run's file?")
+    return f1
+
+
+def number(text):
+    return float(text) if text not in (None, "") else None
+
+
+ranking_file, ranking_tests_file = tables_dir / "ranking_val.csv", tables_dir / "ranking_val_significance.json"
+ranking = {}
+if ranking_file.is_file():
+    with ranking_file.open(newline="") as stream:
+        ranking = {row["run_id"]: row for row in csv.DictReader(stream)}
+else:
+    print(f"No {ranking_file} (J6: qa.eval.evidence_metrics table): ranking columns left empty", file=sys.stderr)
+ranking_tests = {}  # run_id -> (sign that turns the stored difference into run_id - R4, comparison)
+if ranking_tests_file.is_file():
+    for test in json.loads(ranking_tests_file.read_text())["comparisons"]:
+        pair = (test["system_a"], test["system_b"])
+        if test["metric"] == "recall_at_1" and f"{BASE}_s{SEED}" in pair:
+            other, sign = (pair[1], -1) if pair[0] == f"{BASE}_s{SEED}" else (pair[0], 1)
+            ranking_tests[other.removesuffix(f"_s{SEED}")] = (sign, test)
+
+base = records(BASE)
+dataset = json.loads(Path(base[SEED]["config"]["data"]["val_file"]).read_text(encoding="utf-8"))["data"]
+qids = [qa["id"] for article in dataset for paragraph in article["paragraphs"] for qa in paragraph["qas"]]
+official = _official_module()
+base_file, base_answers = answers(base[SEED])
+if base_answers is None:
+    sys.exit(f"{base_file} is missing: every row is tested against R4 seed {SEED}. "
+             "Set OUTPUT_DIR to the folder that holds the seed-42 outputs.")
+base_f1 = f1_per_question(base[SEED], base_file, base_answers)
+
+rows, f1_tests, changed = [], [], {}
+for run_id, label, _ in ROWS:
+    row = {"system": label, "run_id": run_id, "seeds": "", "n": None, "ranking_from": None,
+           "f1_test": "n/a", **{f"{m}_{s}": None for m in METRICS for s in ("mean", "std")},
+           **{f"{m}_{s}": None for m in ("f1", "recall_at_1") for s in ("diff", "ci_low", "ci_high", "p")}}
+    if run_id != BM25:
+        recs = records(run_id)
+        row.update(seeds=" ".join(map(str, SEEDS)), n=recs[SEED]["n"])
+        for metric, field in (("em", "exact"), ("f1", "f1")):
+            values = [recs[seed][field] for seed in SEEDS]
+            row[f"{metric}_mean"], row[f"{metric}_std"] = mean(values), stdev(values)
+        if run_id == BASE:
+            row["f1_test"] = "reference"
+        else:
+            path, preds = answers(recs[SEED])
+            entry = {"system": f"{run_id}_s{SEED}", "file": path.relative_to(output_dir).as_posix()}
+            if preds is None:
+                row["f1_test"] = "pending"
+                f1_tests.append({**entry, "status": "pending"})
+                print(f"{label}: no {path}, so its F1 test against R4 is pending", file=sys.stderr)
+            else:
+                test = compare_scores(f1_per_question(recs[SEED], path, preds), base_f1, metric="f1",
+                                      units="fraction", seed=2026)
+                low, high = test["bootstrap"]["ci"]
+                row.update(f1_test="done", f1_diff=100 * test["difference"], f1_ci_low=100 * low,
+                           f1_ci_high=100 * high, f1_p=test["randomisation"]["p_value"])
+                changed[run_id] = sum(preds[qid] != base_answers[qid] for qid in qids)
+                f1_tests.append({**entry, "status": "done", "sha256": sha256(path),
+                                 "answers_differ_from_reference": changed[run_id],
+                                 "reference": f"{BASE}_s{SEED}",
+                                 "reference_file": base_file.relative_to(output_dir).as_posix(),
+                                 "reference_sha256": sha256(base_file), **test})
+    source = RANKING_FROM.get(run_id, run_id)
+    if source in ranking:
+        row["ranking_from"] = source
+        for metric in ("recall_at_1", "mrr"):
+            row[f"{metric}_mean"] = number(ranking[source][f"{metric}_mean"])
+            row[f"{metric}_std"] = number(ranking[source][f"{metric}_std"])
+    if run_id in ranking_tests:
+        sign, test = ranking_tests[run_id]
+        scale = 100 if test["units"] == "fraction" else 1
+        low, high = sorted(sign * scale * value for value in test["bootstrap"]["ci"])
+        row.update(recall_at_1_diff=sign * scale * test["difference"], recall_at_1_ci_low=low,
+                   recall_at_1_ci_high=high, recall_at_1_p=test["randomisation"]["p_value"])
+    rows.append(row)
+
+tables_dir.mkdir(parents=True, exist_ok=True)
+csv_path, tex_path = tables_dir / "ablations_val.csv", tables_dir / "ablations_val.tex"
+json_path = tables_dir / "ablations_val_significance.json"
+with csv_path.open("w", newline="") as stream:
+    writer = csv.DictWriter(stream, fieldnames=list(rows[0]))
+    writer.writeheader()
+    writer.writerows(rows)
+
+
+def spread(row, metric):
+    if metric in ("recall_at_1", "mrr") and row["ranking_from"] not in (None, row["run_id"]):
+        return "= R4"
+    value, std = row[f"{metric}_mean"], row[f"{metric}_std"]
+    if value is None:
+        return "--"
+    return f"{value:.2f}" + ("" if std is None else f" $\\pm$ {std:.2f}")
+
+
+def signed(value):
+    return "0.00" if abs(value) < 0.005 else f"{value:+.2f}".replace("-", "$-$")  # no "-0.00"
+
+
+def p_text(p):  # math mode, after the p: $p\ablRfivePFOne$ -> p = 0.17
+    return "<0.001" if p < 0.001 else f"={p:.3f}" if p < 0.01 else f"={p:.2f}"
+
+
+def delta(row, metric):
+    value, p = row[f"{metric}_diff"], row[f"{metric}_p"]
+    if value is None:
+        return "pending" if metric == "f1" and row["f1_test"] == "pending" else "--"
+    return signed(value) + ("$^{*}$" if p < ALPHA else "")
+
+
+lines = [
+    "% Generated by configs/ablations/run_ablation.sh table; val, percent. EM, F1, Recall@1 and MRR: "
+    "mean $\\pm$ sample std over seeds 13, 42 and 87. $\\Delta$: seed 42 minus the full model (R4), "
+    f"in points; $^{{*}}$ p < {ALPHA:g}, paired randomisation test (qa.eval.significance). R3's ranking is "
+    "span-implied; R7 re-decodes R4's models, so its ranking is R4's.",
+    r"\begin{tabular}{lcccccc}", r"\hline",
+    r"System & EM & F1 & $\Delta$F1 & Recall@1 & MRR & $\Delta$R@1 \\", r"\hline",
+    *(f"{row['system']} & {spread(row, 'em')} & {spread(row, 'f1')} & {delta(row, 'f1')} & "
+      f"{spread(row, 'recall_at_1')} & {spread(row, 'mrr')} & {delta(row, 'recall_at_1')} \\\\" for row in rows),
+    r"\hline", r"\end{tabular}",
+]
+tex_path.write_text("\n".join(lines) + "\n")
+
+# Numbers the section 5.2 text quotes, so none is copied by hand: \abl<tag><what>, e.g. \ablRfiveDeltaFOne.
+macros = {"NQuestions": f"{len(qids):,}".replace(",", "{,}")}
+done = [row for row in rows if row["f1_test"] == "done"]
+if done:
+    macros["MaxAbsDeltaFOne"] = f"{max(abs(row['f1_diff']) for row in done):.2f}"
+    macros["MinPFOne"] = p_text(min(row["f1_p"] for row in done))
+for row, (_, _, tag) in zip(rows, ROWS):
+    for metric, name in (("f1", "FOne"), ("recall_at_1", "ROne")):
+        if row[f"{metric}_diff"] is not None:
+            macros[f"{tag}Delta{name}"] = signed(row[f"{metric}_diff"])
+            macros[f"{tag}Delta{name}Abs"] = f"{abs(row[f'{metric}_diff']):.2f}"
+            macros[f"{tag}P{name}"] = p_text(row[f"{metric}_p"])
+    if row["run_id"] in changed:
+        macros[f"{tag}ChangedAnswers"] = f"{changed[row['run_id']]:,}".replace(",", "{,}")
+macros_path = tables_dir / "ablations_val_macros.tex"
+macros_path.write_text("% Generated by configs/ablations/run_ablation.sh table: numbers quoted in section 5.2.\n"
+                       + "".join(f"\\newcommand{{\\abl{name}}}{{{value}}}\n" for name, value in macros.items()))
+json_path.write_text(json.dumps({
+    "note": f"Val, seed {SEED}, every row against {BASE}_s{SEED}; difference = row - R4 (A - B). F1: per-question "
+            "official F1 of each run's val answers (paths relative to OUTPUT_DIR), qa.eval.significance."
+            "compare_scores, seed 2026. Recall@1: J6's comparisons, copied as stored (their A/B order).",
+    "alpha": ALPHA,
+    "f1": f1_tests,
+    "recall_at_1": {"source": ranking_tests_file.name,
+                    "sha256": sha256(ranking_tests_file) if ranking_tests_file.is_file() else None,
+                    "comparisons": [test for _, test in ranking_tests.values()]},
+}, indent=2) + "\n")
+
+def show(value, spec):
+    return "--" if value is None else format(value, spec)
+
+
+print(f"val, seed-{SEED} tests against R4; * = p < {ALPHA:g}")
+print(f"{'system':<27} {'F1 (3 seeds)':>14} {'dF1':>8} {'p':>7} {'Recall@1':>9} {'dR@1':>7} {'p':>7}")
+for row in rows:
+    f1 = "--" if row["f1_mean"] is None else f"{row['f1_mean']:.2f} +- {row['f1_std']:.2f}"
+    d_f1 = "pending" if row["f1_test"] == "pending" else show(row["f1_diff"], "+.2f")
+    print(f"{row['system']:<27} {f1:>14} {d_f1:>8} {show(row['f1_p'], '.4f'):>7}"
+          f" {show(row['recall_at_1_mean'], '.2f'):>9} {show(row['recall_at_1_diff'], '+.2f'):>7}"
+          f" {show(row['recall_at_1_p'], '.4f'):>7}")
+for path in (csv_path, tex_path, macros_path, json_path):
+    print(path)
+EOF
+        ;;
     *)
-        sed -n '2,22p' "$0" | sed 's/^# \{0,1\}//'
+        sed -n '2,32p' "$0" | sed 's/^# \{0,1\}//'
         exit 2
         ;;
 esac

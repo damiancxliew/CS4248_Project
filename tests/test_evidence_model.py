@@ -9,6 +9,7 @@ only in what it ablates; R7 re-decodes R4). The real-data check is opt-in (not r
   PYTHONPATH=src python tests/test_evidence_model.py --overfit-real
 """
 import argparse
+import csv
 import json
 import os
 import random
@@ -320,6 +321,9 @@ def test_config_and_data_errors_name_the_problem(tmp_path):
 # --- G3 grid (configs/evidence/) ---------------------------------------------------------------
 
 G3_GRID = ROOT / "configs/evidence/g3_grid.sh"
+# The runners are bash scripts for the Linux cluster; on Windows, bash can't pass them a usable
+# PYTHONPATH (Xin Hui's run: "No module named 'qa'"), so their tests only run elsewhere.
+BASH_RUNNER = pytest.mark.skipif(os.name == "nt", reason="bash runners are for the Linux cluster")
 
 
 def test_g3_config_is_the_evidence_model_on_the_frozen_d3_setting():
@@ -330,6 +334,7 @@ def test_g3_config_is_the_evidence_model_on_the_frozen_d3_setting():
     assert {key: cfg["train"][key] for key in frozen} == frozen
 
 
+@BASH_RUNNER
 def test_g3_grid_lists_the_twelve_settings():
     listing = subprocess.run(["bash", G3_GRID, "list"], capture_output=True, text=True, check=True).stdout
     run_ids = [line.split()[1] for line in listing.splitlines()]
@@ -353,6 +358,7 @@ def test_g3_best_is_a_grid_point_tied_with_the_best_record():
     assert pick["f1"] >= max(record["f1"] for record in records.values()) - 0.2
 
 
+@BASH_RUNNER
 def test_g3_summary_breaks_near_ties_by_recall_at_1(tmp_path):
     # Two questions whose gold sentence is 0. Run A has the best F1; B is within 0.2 F1 and ranks
     # better, so B wins, at the smaller of its two equal-F1 lambdas; C ranks as well as B but is
@@ -429,6 +435,7 @@ def test_g4_ablation_configs_differ_from_r4_only_in_what_they_ablate():
     assert len({cfg["variant"] for cfg in configs.values()}) == 5
 
 
+@BASH_RUNNER
 def test_g4_runner_lists_the_configs_and_marks_r7_decode_only():
     listing = subprocess.run(["bash", ABLATION_RUNNER, "list"], capture_output=True, text=True, check=True,
                              env={**os.environ, "QA_PYTHON": sys.executable}).stdout
@@ -438,6 +445,7 @@ def test_g4_runner_lists_the_configs_and_marks_r7_decode_only():
     assert sum("decode-only" in row for row in rows.values()) == 1
 
 
+@BASH_RUNNER
 def test_g4_r7_needs_the_r4_run_it_reuses(tmp_path):
     env = {**os.environ, "QA_PYTHON": sys.executable, "OUTPUT_DIR": str(tmp_path),
            "RESULTS_DIR": str(tmp_path / "records")}
@@ -452,6 +460,138 @@ def test_g4_r7_needs_the_r4_run_it_reuses(tmp_path):
     mismatched = subprocess.run(command, capture_output=True, text=True, env=env)
     assert mismatched.returncode != 0 and "model.neg_mode = 'random'" in mismatched.stderr
     assert not (tmp_path / "records").exists()
+
+
+# --- G5 ablation table and lambda curve --------------------------------------------------------
+
+G5_QIDS = [f"q{i}" for i in range(40)]
+
+
+def _g5_inputs(tmp_path):
+    """40 val questions; seed-42 answers that make R5 always right, R3 right on half and R4, R6 and
+    R7 always wrong; R6b has no answers. Returns the runner's environment and the folders."""
+    val_file, outputs = tmp_path / "val.json", tmp_path / "outputs"
+    records, tables = tmp_path / "records", tmp_path / "tables"
+    qas = [{"id": qid, "question": "?", "answers": [{"text": f"answer{i}", "answer_start": 0}]}
+           for i, qid in enumerate(G5_QIDS)]
+    val_file.write_text(json.dumps({"data": [{"title": "t", "paragraphs": [{"context": "c", "qas": qas}]}]}))
+    right = {qid: f"answer{i}" for i, qid in enumerate(G5_QIDS)}
+    wrong = dict.fromkeys(G5_QIDS, "nothing")
+    half = {qid: right[qid] if i % 2 else "nothing" for i, qid in enumerate(G5_QIDS)}
+    seed42 = {  # run_id: (decode.lam or None for span-only, seed-42 answers, seed-42 F1)
+        "r4_deberta_evidence": (0.25, wrong, 0.0), "r3_deberta_span": (None, half, 50.0),
+        "r5_deberta_evidence": (0.25, right, 100.0), "r6_deberta_evidence": (0.25, wrong, 0.0),
+        "r6b_deberta_evidence": (0.25, None, 60.0), "r7_deberta_evidence": (0.0, wrong, 0.0),
+    }
+    records.mkdir()
+    for run_id, (lam, answers, f1) in seed42.items():
+        decode = {} if lam is None else {"lam": lam}
+        for seed, value in ((13, f1 + 1), (42, f1), (87, f1 + 2)):
+            (records / f"{run_id}_s{seed}.json").write_text(json.dumps({
+                "run_id": f"{run_id}_s{seed}", "split": "val", "seed": seed, "n": len(G5_QIDS),
+                "exact": value, "f1": value,
+                "config": {"data": {"val_file": str(val_file)}, "decode": decode}}))
+        run_dir = outputs / f"{run_id}_s42"
+        run_dir.mkdir(parents=True)
+        if lam is not None and answers is not None:
+            (run_dir / f"val.joint_lam{lam:g}.predictions.json").write_text(json.dumps(answers))
+        elif lam is None:  # span-only: only its n-best, best first
+            (run_dir / "val.nbest.json").write_text(json.dumps(
+                {qid: [{"text": text, "score": 1.0}, {"text": "other", "score": 0.5}] for qid, text in answers.items()}))
+    tables.mkdir()
+    ranking_rows = [("BM25 (R1)", "r1_bm25", "80.0", ""), ("Span-implied (R3)", "r3_deberta_span", "96.6", "0.1"),
+                    ("Full model (R4)", "r4_deberta_evidence", "96.4", "0.1"),
+                    ("No negatives (R5)", "r5_deberta_evidence", "96.3", "0.1"),
+                    ("Random negatives (R6)", "r6_deberta_evidence", "96.4", "0.2"),
+                    ("Lexical negatives (R6b)", "r6b_deberta_evidence", "96.3", "0.1")]
+    (tables / "ranking_val.csv").write_text(
+        "system,run_id,seeds,n,recall_at_1_mean,recall_at_1_std,recall_at_3_mean,recall_at_3_std,mrr_mean,mrr_std\n"
+        + "".join(f"{label},{run_id},,40,{r1},{std},99.0,,98.0,\n" for label, run_id, r1, std in ranking_rows))
+    (tables / "ranking_val_significance.json").write_text(json.dumps({"comparisons": [
+        {"system_a": "r4_deberta_evidence_s42", "system_b": "r1_bm25", "metric": "recall_at_1",
+         "units": "fraction", "difference": 0.2, "bootstrap": {"ci": [0.1, 0.3]},
+         "randomisation": {"p_value": 0.0001}}]}))
+    env = {**os.environ, "QA_PYTHON": sys.executable, "OUTPUT_DIR": str(outputs),
+           "RESULTS_DIR": str(records), "TABLES_DIR": str(tables)}
+    return env, outputs, records, tables
+
+
+@BASH_RUNNER
+def test_g5_table_rows_means_and_stars(tmp_path):
+    env, outputs, _, tables = _g5_inputs(tmp_path)
+    run = subprocess.run(["bash", ABLATION_RUNNER, "table"], capture_output=True, text=True, check=True, env=env)
+    assert "Lexical negatives (R6b): no" in run.stderr and "pending" in run.stderr
+
+    with (tables / "ablations_val.csv").open() as stream:
+        rows = {row["run_id"]: row for row in csv.DictReader(stream)}
+    assert list(rows) == ["r4_deberta_evidence", "r3_deberta_span", "r5_deberta_evidence", "r6_deberta_evidence",
+                          "r6b_deberta_evidence", "r7_deberta_evidence", "r1_bm25"]
+    assert float(rows["r5_deberta_evidence"]["f1_mean"]) == pytest.approx(101.0)   # mean of 101, 100, 102
+    assert float(rows["r5_deberta_evidence"]["f1_std"]) == pytest.approx(1.0)
+    assert float(rows["r5_deberta_evidence"]["f1_diff"]) == pytest.approx(100.0)   # always right vs never
+    assert float(rows["r5_deberta_evidence"]["f1_p"]) < 0.01
+    assert float(rows["r3_deberta_span"]["f1_diff"]) == pytest.approx(50.0)       # read from its n-best
+    assert float(rows["r6_deberta_evidence"]["f1_diff"]) == 0.0
+    assert float(rows["r6_deberta_evidence"]["f1_p"]) == 1.0
+    assert rows["r6b_deberta_evidence"]["f1_test"] == "pending" and rows["r6b_deberta_evidence"]["f1_p"] == ""
+    assert rows["r7_deberta_evidence"]["ranking_from"] == "r4_deberta_evidence"
+    assert float(rows["r1_bm25"]["recall_at_1_diff"]) == pytest.approx(-20.0)      # stored as R4 - BM25
+    assert rows["r1_bm25"]["f1_mean"] == ""
+
+    tex = {line.split(" & ")[0]: line for line in (tables / "ablations_val.tex").read_text().splitlines()}
+    assert "& +100.00$^{*}$ &" in tex["No negatives (R5)"]
+    assert "& 0.00 &" in tex["Random negatives (R6)"] and "$^{*}$" not in tex["Random negatives (R6)"]
+    assert "& pending &" in tex["Lexical negatives (R6b)"]
+    assert "& = R4 & = R4 &" in tex["No evidence decoding (R7)"]
+    assert tex["BM25 (R1)"].endswith(r"$-$20.00$^{*}$ \\")
+    macros = (tables / "ablations_val_macros.tex").read_text()
+    for line in (r"\newcommand{\ablRfiveDeltaFOne}{+100.00}", r"\newcommand{\ablRfivePFOne}{<0.001}",
+                 r"\newcommand{\ablRsixPFOne}{=1.00}",
+                 r"\newcommand{\ablRoneDeltaROneAbs}{20.00}", r"\newcommand{\ablRsevenChangedAnswers}{0}",
+                 r"\newcommand{\ablMaxAbsDeltaFOne}{100.00}", r"\newcommand{\ablNQuestions}{40}"):
+        assert line in macros
+    assert r"\ablRsixbDeltaFOne" not in macros                                     # pending: nothing to quote
+
+    tests = json.loads((tables / "ablations_val_significance.json").read_text())
+    assert {t["system"]: t["status"] for t in tests["f1"]}["r6b_deberta_evidence_s42"] == "pending"
+    assert all(not Path(t["file"]).is_absolute() for t in tests["f1"])            # no local paths
+    assert all(t["difference_direction"] == "A - B" and t["reference"] == "r4_deberta_evidence_s42"
+               for t in tests["f1"] if t["status"] == "done")
+
+
+@BASH_RUNNER
+def test_g5_table_refuses_answers_that_do_not_match_their_record(tmp_path):
+    env, outputs, records, tables = _g5_inputs(tmp_path)
+    (outputs / "r5_deberta_evidence_s42" / "val.joint_lam0.25.predictions.json").write_text(
+        json.dumps(dict.fromkeys(G5_QIDS, "nothing")))                             # scores 0, record says 100
+    run = subprocess.run(["bash", ABLATION_RUNNER, "table"], capture_output=True, text=True, env=env)
+    assert run.returncode != 0 and "is it that run's file?" in run.stderr
+    (records / "r5_deberta_evidence_s87.json").unlink()
+    run = subprocess.run(["bash", ABLATION_RUNNER, "table"], capture_output=True, text=True, env=env)
+    assert run.returncode != 0 and "need val records for seeds (13, 42, 87)" in run.stderr
+    assert not (tables / "ablations_val.csv").exists()
+
+
+@BASH_RUNNER
+def test_g3_curve_draws_the_pick_and_needs_its_record(tmp_path):
+    records, figures = tmp_path / "records", tmp_path / "figures"
+    records.mkdir()
+    for alpha, beta, margin, curve in ((0.3, 0.5, 1.0, {0: 88.38, 0.25: 88.40}), (1.0, 1.0, 0.5, {0: 88.1, 0.25: 88.0})):
+        for lam, f1 in curve.items():
+            config = {"model": {"alpha": alpha, "beta": beta, "margin": margin}, "decode": {"lam": float(lam)}}
+            (records / f"g3_a{alpha}_b{beta}_m{margin}_s42_lam{lam:g}.json").write_text(
+                json.dumps({"f1": f1, "config": config}))
+    env = {**os.environ, "QA_PYTHON": sys.executable, "RESULTS_DIR": str(records), "FIGURES_DIR": str(figures),
+           "TABLES_DIR": str(tmp_path / "tables")}
+    run = subprocess.run(["bash", G3_GRID, "curve"], capture_output=True, text=True, check=True, env=env)
+    assert "2 runs; pick F1 88.40 at lambda 0.25; best lambda gains at most 0.02 F1 over lambda 0" in run.stdout
+    assert (figures / "lambda_curve.pdf").stat().st_size > 0 and (figures / "lambda_curve.png").stat().st_size > 0
+    macros = (tmp_path / "tables" / "lambda_curve_macros.tex").read_text()
+    assert r"\newcommand{\lamMaxGain}{0.02}" in macros and r"\newcommand{\lamRunSpread}{0.30}" in macros
+    for path in records.glob("g3_a0.3_*"):
+        path.unlink()
+    missing = subprocess.run(["bash", G3_GRID, "curve"], capture_output=True, text=True, env=env)
+    assert missing.returncode != 0 and "No record" in missing.stderr and "best.yaml pick" in missing.stderr
 
 
 def overfit_real(n_questions=200, epochs=8, seed=2026):
