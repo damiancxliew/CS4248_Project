@@ -1,0 +1,4 @@
+# Submission zip: `git archive -o G14_code.zip HEAD` leaves these internal folders out.
+# They stay in the repo for the team (task briefs, plan, working notes, slide drafts).
+docs/ export-ignore
+slides/ export-ignore
