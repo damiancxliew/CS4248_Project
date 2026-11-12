@@ -239,31 +239,33 @@ These read only the committed run records, or outputs on val and AddSent/AddOneS
 | Ranking quality on val (Recall@1/3, MRR) | `python -m qa.eval.evidence_metrics table --split val` | `results/tables/ranking_val.*` |
 | Robustness (AddSent / AddOneSent) and ranking on them | `bash scripts/run_all.sh adversarial` (GPU) | `results/tables/adversarial_*`, `ranking_add*`, `results/figures/adversarial_f1_drop.*` |
 | Efficiency: timing | `sbatch configs/efficiency/d5_slurm.sbatch` (GPU, about 10 min) | `results/efficiency/timings.json` |
-| Efficiency: table | `bash scripts/run_all.sh efficiency` | `results/tables/efficiency.{csv,tex}` |
+| Efficiency: table | `bash scripts/run_all.sh efficiency` (imports torch: run it on a compute node, not the login node) | `results/tables/efficiency.{csv,tex}` |
+| Ablation table with seed-42 tests against R4 (G5) | `bash configs/ablations/run_ablation.sh table` | `results/tables/ablations_val.{csv,tex}`, `ablations_val_significance.json`, `ablations_val_macros.tex` |
+| Val F1 against λ for the G3 grid (G5) | `bash configs/evidence/g3_grid.sh curve` | `results/figures/lambda_curve.{pdf,png}`, `results/tables/lambda_curve_macros.tex` |
 | Negative audit (J3) | `python -m qa.eval.negative_audit count` | `results/audits/j3_counts.json` |
 
 The val ranking table needs each run's `outputs/<run_id>_s<seed>/val.sent_rank.json` (evidence models) or `val.nbest.json` (R3, span-implied). The training jobs and `predict.py --evidence` write these.
 
 ### 6.6 Test set (once, frozen checkpoints only)
 
-[`scripts/run_all.sh`](scripts/run_all.sh) (C9, owner Clemen) is the only code path that reads `dev-v1.1.json`. λ = 0.25 and k = 2 come from `configs/final_checkpoints.yaml`, both chosen on val. Nothing is chosen on test.
+[`scripts/run_all.sh`](scripts/run_all.sh) (C9, owner Clemen) is the only code path that reads `dev-v1.1.json`. λ = 0.25 and k = 2 come from `configs/final_checkpoints.yaml`, both chosen on val. Nothing is chosen on test. The final run is done: its 27 records and tables are committed (PR #74), so the commands below are for reproducing them.
 
 ```bash
 bash scripts/run_all.sh verify      # checkpoint hashes (login node)
 bash scripts/run_all.sh data        # evidence files incl. test (login node, internet)
 sbatch configs/final_test.sbatch    # one GPU job: verify, test, sequential, ranking, adversarial, errors
-bash scripts/run_all.sh tables      # then, on CPU: test tables
-bash scripts/run_all.sh efficiency
+bash scripts/run_all.sh tables      # then: test tables (CPU)
+bash scripts/run_all.sh efficiency  # efficiency table (compute node: imports torch)
 ```
 
 | Stage | What it produces |
 |---|---|
-| `test` | EM/F1 records for R2–R6b × 3 seeds, plus R7 (R4 at λ = 0): `results/runs/test/*.json` |
+| `test` | EM/F1 records for R2–R6b × 3 seeds, plus R7 (R4 at λ = 0): `results/runs/test/*.json`. Their ranking fields are null; the test ranking is in `ranking_test.*` |
 | `sequential` | R9a (BM25 top-2 → R3 reader) and R9b (R4's own top-2 → R4 reader), 3 seeds each |
 | `ranking` | Recall@1/3 and MRR on test: `results/tables/ranking_test.*` |
 | `adversarial` | As in §6.5 |
 | `errors` | C8 error analysis of R3 and R4, seed 42 |
-| `tables` | `results/tables/test/*.{csv,tex}`, mean ± std over seeds |
+| `tables` | `results/tables/test/run_summary.{csv,tex}`, mean ± std over seeds |
 
 `bash scripts/run_all.sh all` runs every stage in order. A finished run should hold 27 test records (18 + 3 R7 + 6 R9). A record that already exists is skipped, so a resubmit after a failure continues where it stopped. Significance tests on the test records are not wired into `run_all.sh` yet (see its header).
 
